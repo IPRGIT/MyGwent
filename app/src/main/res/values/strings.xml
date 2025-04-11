@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">MyGwent</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <string name="play">Jugar</string>
+    <string name="options">Opciones</string>
+    <string name="exit">Salir</string>
+    <string name="exit_confirmation">¿Estás seguro de que quieres salir?</string>
+    <string name="yes">Sí</string>
+    <string name="no">No</string>
+</resources>
