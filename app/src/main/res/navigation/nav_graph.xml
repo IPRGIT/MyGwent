@@ -8,6 +8,9 @@
 
     <include app:graph="@navigation/menu_navigation" />
 
+    <include app:graph="@navigation/game_navigation" />
+
+
 
 </navigation>
 

@@ -5,5 +5,12 @@
         <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
     </style>
 
-    <style name="Theme.MyGwent" parent="Base.Theme.MyGwent" />
+
+    <style name="Theme.MyGwent" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Tus otros atributos -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+
+
+    </style>
 </resources>

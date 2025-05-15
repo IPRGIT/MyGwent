@@ -5,52 +5,90 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@drawable/mygwent_menu"
     tools:context=".MenuFragment">
 
-        <ImageView
-            android:id="@+id/imagenView"
+
+
+        <!-- Contenedor principal para el 70% derecho -->
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/rightPanel"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:src="@drawable/mygwent_logo"
-            android:scaleType="centerInside"
-            app:layout_constraintBottom_toTopOf="@id/btnPlay"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.4"
+            app:layout_constraintHeight_percent="0.8"
             app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintWidth_percent="0.5"
-            app:layout_constraintHeight_percent="0.4"/>
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
 
-        <Button
-            android:id="@+id/btnPlay"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Jugar"
-            android:textSize="24sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/imagenView"
-            app:layout_constraintWidth_percent="0.5"/>
 
-        <Button
-            android:id="@+id/btnOptions"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Opciones"
-            android:textSize="24sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnPlay"
-            app:layout_constraintWidth_percent="0.5"/>
 
-        <Button
-            android:id="@+id/btnExit"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:text="Salir"
-            android:textSize="24sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/btnOptions"
-            app:layout_constraintWidth_percent="0.5"/>
+                <!-- Logo centrado horizontalmente en el panel derecho -->
+
+                <ImageView
+                    android:id="@+id/imagenView"
+                    android:layout_width="350dp"
+                    android:layout_height="120dp"
+                    android:src="@drawable/mygwent_logo"
+                    android:scaleType="fitCenter"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"/>
+
+
+
+                <!-- Contenedor de botones centrado debajo del logo -->
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="10dp"
+                    app:layout_constraintTop_toBottomOf="@id/imagenView"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent">
+
+                        <Button
+                            android:id="@+id/btnPlay"
+                            style="@style/MenuButtonStyle"
+                            android:text="Jugar"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:layout_gravity="center_horizontal"/>
+
+                        <Button
+                            android:id="@+id/btnOptions"
+                            style="@style/MenuButtonStyle"
+                            android:text="Opciones"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:layout_gravity="center_horizontal"/>
+
+                        <Button
+                            android:id="@+id/btnTestCards"
+                            style="@style/MenuButtonStyle"
+                            android:text="Cartas"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:layout_gravity="center_horizontal"/>
+
+                        <Button
+                            android:id="@+id/btnExit"
+                            style="@style/MenuButtonStyle"
+                            android:text="Salir"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textSize="20sp"
+                            android:layout_gravity="center_horizontal"/>
+
+
+                </LinearLayout>
+
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -14,47 +14,34 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyGwent"
         tools:targetApi="31">
-        <!-- Add this to your AndroidManifest.xml -->
+        <activity
+            android:name=".CardTestActivity"
+            android:exported="false" />
+
+        <service
+            android:name=".GwentAPI"
+            android:enabled="true"
+            android:exported="true" />
+
         <activity
             android:name=".SplashActivity"
-            android:screenOrientation="landscape"
             android:exported="true"
+            android:screenOrientation="landscape"
             android:theme="@style/Theme.AppCompat.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-
-        <activity
-            android:name=".InGameMenuActivity"
-            android:exported="false" />
-
-        <activity
-            android:name=".DeckSelectionActivity"
-            android:exported="false" />
-        <activity
-            android:name=".GameActivity"
-            android:exported="false" />
         <activity
             android:name=".MainActivity"
-            android:screenOrientation="landscape"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
+            android:exported="false"
+            android:screenOrientation="landscape" />
+        <activity
+            android:name=".GameActivity"
+            android:exported="false"
+            android:screenOrientation="landscape" />
     </application>
 
 </manifest>
-
-
-
-
-
-
-
-

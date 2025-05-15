@@ -6,7 +6,7 @@
     <string name="play">Jugar</string>
     <string name="options">Opciones</string>
     <string name="exit">Salir</string>
-    <string name="exit_confirmation">¿Estás seguro de que quieres salir?</string>
+    <string name="exit_confirmation">¿Salir de la aplicación?</string>
     <string name="yes">Sí</string>
     <string name="no">No</string>
 </resources>

@@ -9,7 +9,26 @@
         android:id="@+id/menuFragment"
         android:name="com.example.mygwent.MenuFragment"
         android:label="MenuFragment"
-        tools:layout="@layout/fragment_menu" />
+        tools:layout="@layout/fragment_menu" >
+
+        <action
+            android:id="@+id/action_menuFragment_to_cardTestFragment"
+            app:destination="@id/cardTestFragment" />
+        <action
+            android:id="@+id/action_menuFragment_to_gameActivity"
+            app:destination="@id/gameActivity" />
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/cardTestFragment"
+        android:name="com.example.mygwent.CardTestFragment"
+        android:label="CardTestFragment"
+        tools:layout="@layout/activity_card_test"/>
+    <activity
+        android:id="@+id/gameActivity"
+        android:name="com.example.mygwent.GameActivity"
+        android:label="GameActivity" />
 
 
 </navigation>

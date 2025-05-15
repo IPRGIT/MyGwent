@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="#33000000"/> <!-- Fondo semitransparente oscuro -->
+            <size android:width="24dp" android:height="24dp"/>
+        </shape>
+    </item>
+
+    <!-- Tu icono PNG centrado y posiblemente redimensionado -->
+    <item android:drawable="@drawable/card_row_ranged"
+        android:width="16dp"
+        android:height="16dp"
+        android:gravity="center"/>
+</layer-list>

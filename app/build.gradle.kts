@@ -44,6 +44,39 @@ android {
 dependencies {
 
 
+
+    implementation (libs.okhttp3.logging.interceptor)
+        // UI
+        implementation (libs.androidx.core.ktx.v170)
+        implementation (libs.androidx.appcompat.v141)
+        implementation (libs.material.v150)
+        implementation (libs.androidx.constraintlayout.v213)
+
+        // Navigation
+        implementation (libs.androidx.navigation.fragment.ktx.v241)
+        implementation (libs.androidx.navigation.ui.ktx.v241)
+
+        // Retrofit
+        implementation (libs.retrofit)
+        implementation (libs.converter.gson)
+
+        // Glide
+        implementation (libs.glide.v4130)
+        annotationProcessor (libs.compiler.v4130)
+
+        // Coroutines
+        implementation (libs.kotlinx.coroutines.android.v160)
+
+        // ViewModel
+        implementation (libs.androidx.lifecycle.viewmodel.ktx.v241)
+        implementation (libs.androidx.activity.ktx)
+
+        // RecyclerView
+        implementation (libs.androidx.recyclerview)
+
+
+
+
     implementation (libs.androidx.navigation.fragment.ktx.v253)
     implementation (libs.androidx.navigation.ui.ktx.v253)
 

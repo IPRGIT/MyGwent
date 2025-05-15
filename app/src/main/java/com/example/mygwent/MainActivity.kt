@@ -1,25 +1,26 @@
 package com.example.mygwent
 
+import android.content.pm.ActivityInfo
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.NavigationUI
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Forzar orientación landscape
+        requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
 
-        // Set up navigation
+        // Configurar navegación
         val navHostFragment = supportFragmentManager
             .findFragmentById(R.id.navHostFragment) as NavHostFragment
         val navController = navHostFragment.navController
-        NavigationUI.setupActionBarWithNavController(this, navController)
 
-        // Remove action bar title
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        // Ocultar ActionBar
+        supportActionBar?.hide()
     }
 
     override fun onSupportNavigateUp(): Boolean {
