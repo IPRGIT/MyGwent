@@ -10,4 +10,8 @@ data class GameState(
     var currentPlayer: Boolean = true, // true for human, false for AI
     var weatherEffects: MutableSet<String> = mutableSetOf(),
     var coinTossWinner: Boolean = true // true if player won coin toss
-)
+) {
+    companion object {
+        val currentRound:  Int = 1
+    }
+}
