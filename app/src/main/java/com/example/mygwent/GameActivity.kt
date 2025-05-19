@@ -10,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.mygwent.adapter.BoardRowAdapter
 import com.example.mygwent.adapter.HandAdapter
 import com.example.mygwent.data.Card
 import com.example.mygwent.databinding.ActivityGameBinding
@@ -23,12 +22,12 @@ class GameActivity : AppCompatActivity() {
     private lateinit var gameEngine: GameEngine
     private lateinit var playerHandAdapter: HandAdapter
     private val viewModel: CardViewModel by viewModels()
-    private lateinit var playerMeleeAdapter: BoardRowAdapter
-    private lateinit var playerRangedAdapter: BoardRowAdapter
-    private lateinit var playerSiegeAdapter: BoardRowAdapter
-    private lateinit var aiMeleeAdapter: BoardRowAdapter
-    private lateinit var aiRangedAdapter: BoardRowAdapter
-    private lateinit var aiSiegeAdapter: BoardRowAdapter
+    private lateinit var playerMeleeAdapter: HandAdapter.BoardRowAdapter
+    private lateinit var playerRangedAdapter: HandAdapter.BoardRowAdapter
+    private lateinit var playerSiegeAdapter: HandAdapter.BoardRowAdapter
+    private lateinit var aiMeleeAdapter: HandAdapter.BoardRowAdapter
+    private lateinit var aiRangedAdapter: HandAdapter.BoardRowAdapter
+    private lateinit var aiSiegeAdapter: HandAdapter.BoardRowAdapter
 
 
 
@@ -92,38 +91,38 @@ class GameActivity : AppCompatActivity() {
 
 
             // Adapters para las filas del jugador
-            playerMeleeAdapter = BoardRowAdapter { /* No action */ }
+            playerMeleeAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.playerMeleeRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = playerMeleeAdapter
             }
 
-            playerRangedAdapter = BoardRowAdapter { /* No action */ }
+            playerRangedAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.playerRangedRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = playerRangedAdapter
             }
 
-            playerSiegeAdapter = BoardRowAdapter { /* No action */ }
+            playerSiegeAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.playerSiegeRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = playerSiegeAdapter
             }
 
             // Adapters para las filas de la IA
-            aiMeleeAdapter = BoardRowAdapter { /* No action */ }
+            aiMeleeAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.aiMeleeRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = aiMeleeAdapter
             }
 
-            aiRangedAdapter = BoardRowAdapter { /* No action */ }
+            aiRangedAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.aiRangedRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = aiRangedAdapter
             }
 
-            aiSiegeAdapter = BoardRowAdapter { /* No action */ }
+            aiSiegeAdapter = HandAdapter.BoardRowAdapter { /* No action */ }
             binding.aiSiegeRow.apply {
                 layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
                 adapter = aiSiegeAdapter
