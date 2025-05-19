@@ -2,191 +2,235 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/board">
-
-    <!-- PUNTUACIÓN IA -->
-    <TextView
-        android:id="@+id/aiScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="24sp"
-        android:textColor="@android:color/white"
-        android:layout_margin="16dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <!-- MAZO IA -->
-    <ImageView
-        android:id="@+id/aiDeckImage"
-        android:layout_width="60dp"
-        android:layout_height="80dp"
-        android:layout_marginEnd="16dp"
-        android:contentDescription="AI Deck"
-        app:layout_constraintTop_toBottomOf="@id/aiScore"
-        app:layout_constraintEnd_toEndOf="parent"/>
-
-    <TextView
-        android:id="@+id/aiDeckCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/aiDeckImage"
-        app:layout_constraintStart_toStartOf="@id/aiDeckImage"
-        app:layout_constraintEnd_toEndOf="@id/aiDeckImage"/>
-
-    <!-- CAMPO DE BATALLA -->
-
-    <!-- MANO DEL JUGADOR -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/battlefieldContainer"
+    android:background="@drawable/board"
+    >
+    <!-- CONTENEDOR IZQUIERDO: Botón Pasar -->
+    <LinearLayout
+        android:id="@+id/leftTableContainer"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toTopOf="@id/playerhandcontainer"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/aiDeckImage"
-        app:layout_constraintVertical_bias="0.0">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.2">
 
-        <!-- Filas IA (orden inverso) -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/aiSiegeRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <!-- Puntaje IA -->
+        <TextView
+            android:id="@+id/aiScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IA: 0"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="8dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/aiRangedRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/aiSiegeRow" />
+        <!-- Puntaje Jugador -->
+        <TextView
+            android:id="@+id/playerScore"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Jugador: 0"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_marginBottom="32dp"/>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/aiMeleeRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/aiRangedRow" />
+        <Button
+            android:id="@+id/btnPass"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Pasar"
+            android:layout_margin="16dp"/>
+    </LinearLayout>
 
-        <!-- TEXTO RONDA -->
+    <!-- CONTENEDOR CENTRAL: Juego -->
+    <LinearLayout
+        android:id="@+id/gameContainer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        app:layout_constraintStart_toEndOf="@id/leftTableContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintWidth_percent="0.67">
+
+        <!-- Contenedor líneas ataque IA -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/aiAttackLinesContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="3"
+            android:layout_margin="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/aiSiegeRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/aisiegeasset"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.33"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/aiRangedRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/airangeasset"
+                app:layout_constraintTop_toBottomOf="@id/aiSiegeRow"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.33"/>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/aiMeleeRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/aimeleeasset"
+                app:layout_constraintTop_toBottomOf="@id/aiRangedRow"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.3"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Texto Ronda -->
         <TextView
             android:id="@+id/tvRound"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"
             android:text="Ronda 1"
             android:textColor="@android:color/white"
             android:textSize="18sp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/aiMeleeRow" />
+            android:layout_gravity="center"/>
 
-        <!-- Filas JUGADOR -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/playerMeleeRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvRound" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/playerRangedRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/playerMeleeRow" />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/playerSiegeRow"
-            android:layout_width="0dp"
-            android:layout_height="120dp"
-            android:layout_margin="8dp"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/playerRangedRow" />
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/playerhandcontainer"
-        android:layout_width="0dp"
-        android:layout_height="120dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        app:layout_constraintBottom_toTopOf="@id/btnPass"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/playerHandRecyclerView"
+        <!-- Contenedor líneas ataque jugador -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/playerAttackLinesContainer"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"/>
-    </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_height="0dp"
+            android:layout_weight="2"
+            android:layout_margin="8dp">
 
-    <!-- MAZO DEL JUGADOR -->
-    <ImageView
-        android:id="@+id/playerDeckImage"
-        android:layout_width="60dp"
-        android:layout_height="80dp"
-        android:layout_marginEnd="16dp"
-        android:contentDescription="Player Deck"
-        app:layout_constraintBottom_toTopOf="@id/playerhandcontainer"
-        app:layout_constraintEnd_toEndOf="parent"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerMeleeRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/playermeleeasset"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.33"/>
 
-    <TextView
-        android:id="@+id/playerDeckCount"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"
-        android:textSize="16sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/playerDeckImage"
-        app:layout_constraintStart_toStartOf="@id/playerDeckImage"
-        app:layout_constraintEnd_toEndOf="@id/playerDeckImage"/>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerRangedRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/playerrangeasset"
+                app:layout_constraintTop_toBottomOf="@id/playerMeleeRow"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.33"/>
 
-    <!-- BOTÓN PASAR -->
-    <Button
-        android:id="@+id/btnPass"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Pasar"
-        android:layout_margin="16dp"
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerSiegeRow"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_margin="4dp"
+                android:background="@drawable/playersiegeasset"
+                app:layout_constraintTop_toBottomOf="@id/playerRangedRow"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintHeight_percent="0.33"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+        <!-- Contenedor mano jugador -->
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/playerhandcontainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_margin="8dp">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/playerHandRecyclerView"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"/>
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
+
+    <!-- CONTENEDOR DERECHO: Mazo IA y jugador -->
+    <LinearLayout
+        android:id="@+id/rightTableContainer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toEndOf="@id/gameContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0"
+        app:layout_constraintWidth_percent="0.128">
 
-    <!-- PUNTOS JUGADOR -->
-    <TextView
-        android:id="@+id/playerScore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="0"
-        android:textSize="24sp"
-        android:textColor="@android:color/white"
-        android:layout_margin="16dp"
-        app:layout_constraintBottom_toTopOf="@id/playerhandcontainer"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        <!-- Mazo IA -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="32dp"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/aiDeckImage"
+                android:layout_width="60dp"
+                android:layout_height="80dp"
+                android:contentDescription="AI Deck" />
+
+            <TextView
+                android:id="@+id/aiDeckCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- Mazo Jugador -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageView
+                android:id="@+id/playerDeckImage"
+                android:layout_width="60dp"
+                android:layout_height="80dp"
+                android:contentDescription="Player Deck" />
+
+            <TextView
+                android:id="@+id/playerDeckCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
