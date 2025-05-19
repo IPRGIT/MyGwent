@@ -142,45 +142,6 @@ class GameEngine(private val context: Context) {
     }
 
 
-        fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
-            // Reset game state
-            gameEnded = false
-            gameState.currentRound = 1
-            gameState.weatherEffects.clear()
-
-            // Initialize decks and shuffle them
-            gameState.player.deck = playerDeck.toMutableList().apply { shuffle() }
-            gameState.ai.deck = aiDeck.toMutableList().apply { shuffle() }
-
-            // Clear hands and boards
-            gameState.player.apply {
-                hand.clear()
-                discardPile.clear()
-                board.values.forEach { it.clear() }
-                passed = false
-                lives = 2
-            }
-
-            gameState.ai.apply {
-                hand.clear()
-                discardPile.clear()
-                board.values.forEach { it.clear() }
-                passed = false
-                lives = 2
-            }
-
-            // Deal initial cards (10 each)
-            repeat(10) {
-                gameState.player.drawCard()
-                gameState.ai.drawCard()
-            }
-
-            // Random starting player (50/50 chance)
-            gameState.currentPlayer = Random.nextBoolean()
-        }
-
-
-
         fun playCard(card: Card, isPlayer: Boolean, selectedRow: String? = null): Boolean {
             if (gameEnded || isPlayer != gameState.currentPlayer) return false
 
@@ -229,6 +190,67 @@ class GameEngine(private val context: Context) {
             }
 
             return totalScore
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
+            // Reset game state
+            gameEnded = false
+            gameState.currentRound = 1
+            gameState.weatherEffects.clear()
+
+            // Initialize decks and shuffle them
+            gameState.player.deck = playerDeck.toMutableList().apply { shuffle() }
+            gameState.ai.deck = aiDeck.toMutableList().apply { shuffle() }
+
+            // Clear hands and boards
+            gameState.player.apply {
+                hand.clear()
+                discardPile.clear()
+                board.values.forEach { it.clear() }
+                passed = false
+                lives = 2
+            }
+
+            gameState.ai.apply {
+                hand.clear()
+                discardPile.clear()
+                board.values.forEach { it.clear() }
+                passed = false
+                lives = 2
+            }
+
+            // Deal exactly 10 cards to each player
+            repeat(10) {
+                gameState.player.drawCard()?.let { card ->
+                    if (!gameState.player.hand.contains(card)) {
+                        gameState.player.hand.add(card)
+                    }
+                }
+                gameState.ai.drawCard()?.let { card ->
+                    if (!gameState.ai.hand.contains(card)) {
+                        gameState.ai.hand.add(card)
+                    }
+                }
+            }
+
+            // Random starting player
+            gameState.currentPlayer = Random.nextBoolean()
         }
 
 

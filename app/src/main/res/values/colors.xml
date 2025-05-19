@@ -4,4 +4,5 @@
     <color name="white">#FFFFFFFF</color>
     <color name="Primary">#5533A2</color>
     <color name="Accent">#106B27</color>
+    <color name="gold_highlight">#A67F01</color>
 </resources>
