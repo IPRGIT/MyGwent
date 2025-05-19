@@ -2,10 +2,12 @@
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/board"
     >
+
     <!-- CONTENEDOR IZQUIERDO: Botón Pasar -->
     <LinearLayout
         android:id="@+id/leftTableContainer"
@@ -61,49 +63,82 @@
         app:layout_constraintWidth_percent="0.67">
 
         <!-- Contenedor líneas ataque IA -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/aiAttackLinesContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="3"
-            android:layout_margin="8dp">
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/aiSiegeRow"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/aisiegeasset"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.33"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/aiRangedRow"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/airangeasset"
-                app:layout_constraintTop_toBottomOf="@id/aiSiegeRow"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.33"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/aiMeleeRow"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/aimeleeasset"
-                app:layout_constraintTop_toBottomOf="@id/aiRangedRow"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.3"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <!-- Texto Ronda -->
+        <LinearLayout
+            android:layout_width="2469dp"
+            android:layout_height="195dp"
+            android:layout_margin="8dp"
+            android:layout_weight="1.56"
+            android:orientation="horizontal">
+
+            <!-- Trumpet Container IA -->
+            <LinearLayout
+                android:id="@+id/aitrumpetcontainer"
+                android:layout_width="0dp"
+                android:layout_height="941dp"
+                android:layout_weight="0.2"
+                android:orientation="vertical">
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <!-- Attack Container IA -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/aiattackcontainer"
+                android:layout_width="0dp"
+                android:layout_height="924dp"
+                android:layout_weight="0.94">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/aiSiegeRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/aisiegeasset"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/aiRangedRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/airangeasset"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/aiSiegeRow" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/aiMeleeRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/aimeleeasset"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/aiRangedRow" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+
         <TextView
             android:id="@+id/tvRound"
             android:layout_width="wrap_content"
@@ -114,49 +149,93 @@
             android:layout_gravity="center"/>
 
         <!-- Contenedor líneas ataque jugador -->
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/playerAttackLinesContainer"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="2"
-            android:layout_margin="8dp">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/playerMeleeRow"
+
+
+
+
+
+
+        <!-- Texto Ronda -->
+        <LinearLayout
+            android:layout_width="2469dp"
+            android:layout_height="195dp"
+            android:layout_margin="8dp"
+            android:layout_weight="1.56"
+            android:orientation="horizontal">
+
+            <!-- Trumpet Container IA -->
+            <LinearLayout
+                android:id="@+id/playertrumpetcontainer"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/playermeleeasset"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.33"/>
+                android:layout_height="941dp"
+                android:layout_weight="0.2"
+                android:orientation="vertical">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/playerRangedRow"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1" />
+            </LinearLayout>
+
+            <!-- Attack Container IA -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id="@+id/playerattackcontainer"
                 android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/playerrangeasset"
-                app:layout_constraintTop_toBottomOf="@id/playerMeleeRow"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.33"/>
+                android:layout_height="924dp"
+                android:layout_weight="0.94">
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/playerSiegeRow"
-                android:layout_width="0dp"
-                android:layout_height="0dp"
-                android:layout_margin="4dp"
-                android:background="@drawable/playersiegeasset"
-                app:layout_constraintTop_toBottomOf="@id/playerRangedRow"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHeight_percent="0.33"/>
-        </androidx.constraintlayout.widget.ConstraintLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/playerSiegeRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/playersiegeasset"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Contenedor mano jugador -->
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/playerRangedRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/playerrangeasset"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/playerSiegeRow" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/playerMeleeRow"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:layout_margin="4dp"
+                    android:background="@drawable/playermeleeasset"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintHeight_percent="0.33"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/playerRangedRow" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
+
+
+
+
+
+
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/playerhandcontainer"
             android:layout_width="match_parent"
@@ -168,7 +247,9 @@
                 android:id="@+id/playerHandRecyclerView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/handtableasset"/>
+                android:background="@drawable/handtableasset"
+                tools:layout_editor_absoluteX="62dp"
+                tools:layout_editor_absoluteY="-84dp" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
@@ -235,5 +316,4 @@
                 android:textStyle="bold" />
         </LinearLayout>
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
