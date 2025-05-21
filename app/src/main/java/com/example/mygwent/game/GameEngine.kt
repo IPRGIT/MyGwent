@@ -14,6 +14,7 @@ class GameEngine(private val context: Context) {
 
     private var gameEnded = false
 
+    // In GameEngine.kt
     fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
         gameEnded = false
         gameState.currentRound = 1
@@ -38,6 +39,7 @@ class GameEngine(private val context: Context) {
             lives = 2
         }
 
+        // Draw 10 cards for each player
         repeat(10) {
             gameState.player.drawCard()?.let { card ->
                 if (!gameState.player.hand.contains(card)) {
@@ -57,6 +59,7 @@ class GameEngine(private val context: Context) {
         }
     }
 
+    // En GameEngine.kt
     fun playCard(card: Card, isPlayer: Boolean, selectedRow: String? = null): Boolean {
         if (gameEnded || isPlayer != gameState.currentPlayer) return false
 
@@ -64,17 +67,19 @@ class GameEngine(private val context: Context) {
 
         if (!currentPlayer.hand.contains(card) || !card.isPlayable()) return false
 
-        return when {
+        val success = when {
             card.isUnitCard() -> playUnitCard(currentPlayer, card, selectedRow)
             card.isSpecialCard() -> playSpecialCard(currentPlayer, card)
             card.isWeatherCard() -> playWeatherCard(currentPlayer, card)
             else -> false
-        }.also { success ->
-            if (success) {
-                currentPlayer.hand.remove(card)
-                switchTurn()
-            }
         }
+
+        if (success) {
+            currentPlayer.hand.remove(card)
+            switchTurn()
+        }
+
+        return success
     }
 
     private fun playUnitCard(player: Player, card: Card, selectedRow: String?): Boolean {
@@ -89,6 +94,8 @@ class GameEngine(private val context: Context) {
         applyCardEffects(card, player)
         return true
     }
+
+
 
     private fun playSpecialCard(player: Player, card: Card): Boolean {
         applySpecialCard(card, player == gameState.player)

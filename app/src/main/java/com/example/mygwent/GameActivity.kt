@@ -143,51 +143,53 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
+    // En GameActivity.kt
     private fun playSelectedCard() {
         selectedRow?.let { row ->
             playerHandAdapter.getSelectedCard()?.let { card ->
-                gameEngine.playCard(card, isPlayer = true, row)
-                updateUI()
-                resetRowHighlights()
-                selectedRow = null
-                playerHandAdapter.clearSelection()
+                if (gameEngine.playCard(card, isPlayer = true, row)) {
+                    // Actualizar UI inmediatamente después de jugar la carta
+                    updateUI()
+                    resetRowHighlights()
+                    selectedRow = null
+                    playerHandAdapter.clearSelection()
+
+                    // Verificar si el juego ha terminado
+                    if (gameEngine.gameState.player.lives <= 0 || gameEngine.gameState.ai.lives <= 0) {
+                        // Mostrar resultado del juego
+                        val message = if (gameEngine.gameState.player.lives <= 0)
+                            "Has perdido la partida" else "¡Has ganado la partida!"
+                        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
+                    }
+                }
             }
         }
     }
 
-    private fun startNewGame(allCards: List<Card>) {
-        if (allCards.isEmpty()) {
-            Toast.makeText(this, "No cards available", Toast.LENGTH_LONG).show()
-            finish()
-            return
-        }
+    private fun updateUI() {
+        playerHandAdapter.submitList(gameEngine.gameState.player.hand.toList())
+        playerMeleeAdapter.submitList(gameEngine.gameState.player.board["melee"] ?: emptyList())
+        playerRangedAdapter.submitList(gameEngine.gameState.player.board["ranged"] ?: emptyList())
+        playerSiegeAdapter.submitList(gameEngine.gameState.player.board["siege"] ?: emptyList())
+        aiMeleeAdapter.submitList(gameEngine.gameState.ai.board["melee"] ?: emptyList())
+        aiRangedAdapter.submitList(gameEngine.gameState.ai.board["ranged"] ?: emptyList())
+        aiSiegeAdapter.submitList(gameEngine.gameState.ai.board["siege"] ?: emptyList())
 
-        val factions = listOf("monsters", "nilfgaard", "northernrealms", "scoiatael", "skellige")
-        var playerFaction: String
-        var aiFaction: String
-        var playerDeck: List<Card>
-        var aiDeck: List<Card>
+        // Actualizar contadores
+        binding.playerScore.text = gameEngine.calculatePlayerScore().toString()
+        binding.aiScore.text = gameEngine.calculateAIScore().toString()
+        binding.tvRound.text = "Ronda ${gameEngine.gameState.currentRound}"
+        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
+        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
 
-        do {
-            playerFaction = factions.random()
-            aiFaction = factions.random()
-
-            val playerCards = allCards.filter { it.faction.equals(playerFaction, ignoreCase = true) }
-            val aiCards = allCards.filter { it.faction.equals(aiFaction, ignoreCase = true) }
-
-            playerDeck = List(10.coerceAtMost(playerCards.size)) {
-                playerCards.random().copy()
-            }
-
-            aiDeck = List(10.coerceAtMost(aiCards.size)) {
-                aiCards.random().copy()
-            }
-        } while (playerDeck.size < 10 || aiDeck.size < 10)
-
-        setDeckImages(playerFaction, aiFaction)
-        gameEngine.startGame(playerDeck, aiDeck)
-        updateUI()
+        // Forzar redibujado de las vistas
+        binding.playerHandRecyclerView.invalidate()
+        binding.playerMeleeRow.invalidate()
+        binding.playerRangedRow.invalidate()
+        binding.playerSiegeRow.invalidate()
     }
+
+
 
     private fun setDeckImages(playerFaction: String, aiFaction: String) {
         val playerDeckRes = when(playerFaction.lowercase()) {
@@ -230,18 +232,42 @@ class GameActivity : AppCompatActivity() {
         binding.playerSiegeRow.setBackgroundColor(Color.TRANSPARENT)
     }
 
-    private fun updateUI() {
-        playerHandAdapter.submitList(gameEngine.gameState.player.hand)
-        playerMeleeAdapter.submitList(gameEngine.gameState.player.board["melee"] ?: emptyList())
-        playerRangedAdapter.submitList(gameEngine.gameState.player.board["ranged"] ?: emptyList())
-        playerSiegeAdapter.submitList(gameEngine.gameState.player.board["siege"] ?: emptyList())
-        aiMeleeAdapter.submitList(gameEngine.gameState.ai.board["melee"] ?: emptyList())
-        aiRangedAdapter.submitList(gameEngine.gameState.ai.board["ranged"] ?: emptyList())
-        aiSiegeAdapter.submitList(gameEngine.gameState.ai.board["siege"] ?: emptyList())
-        binding.playerScore.text = gameEngine.calculatePlayerScore().toString()
-        binding.aiScore.text = gameEngine.calculateAIScore().toString()
-        binding.tvRound.text = "Round ${GameState.currentRound}"
-        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
-        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
+
+
+
+    // In GameActivity.kt
+    private fun startNewGame(allCards: List<Card>) {
+        if (allCards.isEmpty()) {
+            Toast.makeText(this, "No cards available", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
+        val factions = listOf("monsters", "nilfgaard", "northernrealms", "scoiatael", "skellige")
+        var playerFaction: String
+        var aiFaction: String
+        var playerDeck: List<Card>
+        var aiDeck: List<Card>
+
+        do {
+            playerFaction = factions.random()
+            aiFaction = factions.random()
+
+            val playerCards = allCards.filter { it.faction.equals(playerFaction, ignoreCase = true) }
+            val aiCards = allCards.filter { it.faction.equals(aiFaction, ignoreCase = true) }
+
+            // Create decks with 47 cards each
+            playerDeck = List(47.coerceAtMost(playerCards.size)) {
+                playerCards.random().copy()
+            }
+
+            aiDeck = List(47.coerceAtMost(aiCards.size)) {
+                aiCards.random().copy()
+            }
+        } while (playerDeck.size < 47 || aiDeck.size < 47)
+
+        setDeckImages(playerFaction, aiFaction)
+        gameEngine.startGame(playerDeck, aiDeck)
+        updateUI()
     }
 }

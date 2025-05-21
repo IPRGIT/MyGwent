@@ -41,14 +41,13 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             onClick(card)
         }
 
-        // Calculate card width to fit all 10 cards
-        val totalCards = 10 // Fixed number of cards
+        // Ajustar tamaño de las cartas en la mano
         val displayMetrics = holder.itemView.context.resources.displayMetrics
-        val containerWidth = (displayMetrics.widthPixels * 0.67).toInt() // Match gameContainer width
-        val cardWidth = containerWidth / totalCards
+        val cardWidth = (displayMetrics.widthPixels * 0.67 * 0.5 / 5).toInt() // Mitad del ancho disponible para 5 cartas
+        val cardHeight = (cardWidth * 1.4).toInt() // Proporción estándar de cartas
 
         holder.itemView.layoutParams.width = cardWidth
-        holder.itemView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+        holder.itemView.layoutParams.height = cardHeight
     }
 
     inner class CardViewHolder(private val binding: ItemCardBinding) :
@@ -57,6 +56,9 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         fun bind(card: Card) {
             binding.cardName.text = card.name
             binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+
+            // Make card background transparent when on board
+            binding.root.background = null
 
             Glide.with(binding.root)
                 .load(card.art)
@@ -75,6 +77,8 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         }
     }
 
+
+
     class CardDiffCallback : DiffUtil.ItemCallback<Card>() {
         override fun areItemsTheSame(oldItem: Card, newItem: Card): Boolean {
             return oldItem.id == newItem.id
@@ -84,6 +88,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             return oldItem == newItem
         }
     }
+
 
     class BoardRowAdapter :
         ListAdapter<Card, BoardRowAdapter.CardViewHolder>(CardDiffCallback()) {
@@ -95,6 +100,11 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                 false
             ).apply {
                 root.setBackgroundResource(android.R.color.transparent)
+                // Asegurar que la carta ocupe todo el espacio disponible en la fila
+                root.layoutParams = ViewGroup.LayoutParams(
+                    ViewGroup.LayoutParams.WRAP_CONTENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
             }
             return CardViewHolder(binding)
         }
@@ -103,13 +113,13 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             val card = getItem(position)
             holder.bind(card)
 
-            // Adjust card size to fit within row
+            // Ajustar tamaño de las cartas en las filas de ataque
             val displayMetrics = holder.itemView.context.resources.displayMetrics
-            val containerWidth = (displayMetrics.widthPixels * 0.67 * 0.94).toInt() // Match attack container
-            val cardWidth = containerWidth / 5 // Assume max 5 cards per row
+            val cardWidth = (displayMetrics.widthPixels * 0.67 * 0.94 / 5).toInt() // Espacio para 5 cartas
+            val cardHeight = (cardWidth * 1.4).toInt()
 
             holder.itemView.layoutParams.width = cardWidth
-            holder.itemView.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+            holder.itemView.layoutParams.height = cardHeight
         }
 
         inner class CardViewHolder(private val binding: ItemCardBinding) :
@@ -118,6 +128,10 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             fun bind(card: Card) {
                 binding.cardName.text = card.name
                 binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+
+                // Hacer fondo transparente y ajustar márgenes
+                binding.root.background = null
+                binding.root.setPadding(4, 4, 4, 4)
 
                 Glide.with(binding.root)
                     .load(card.art)
@@ -134,4 +148,14 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             }
         }
     }
+
+
+
+
+
+
+
+
+
+
 }

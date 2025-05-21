@@ -176,16 +176,23 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.94">
 
+
+
+
+                <!-- Para las filas de ataque -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/playerMeleeRow"
                     android:layout_width="0dp"
                     android:layout_height="0dp"
                     android:layout_margin="4dp"
+                    android:clipToPadding="false"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="8dp"
                     android:background="@drawable/playermeleeasset"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHeight_percent="0.33"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toTopOf="parent" />
+                    app:layout_constraintTop_toTopOf="parent"/>
 
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/playerRangedRow"
@@ -225,8 +232,11 @@
                 android:layout_height="match_parent"
                 android:background="@drawable/handtableasset"
                 android:clipToPadding="false"
-                android:paddingStart="8dp"
-                android:paddingEnd="8dp"/>
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="8dp"/>
+
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 
