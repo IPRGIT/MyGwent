@@ -14,7 +14,6 @@ class GameEngine(private val context: Context) {
 
     private var gameEnded = false
 
-    // In GameEngine.kt
     fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
         gameEnded = false
         gameState.currentRound = 1
@@ -23,6 +22,7 @@ class GameEngine(private val context: Context) {
         gameState.player.deck = playerDeck.toMutableList().apply { shuffle() }
         gameState.ai.deck = aiDeck.toMutableList().apply { shuffle() }
 
+        // Limpiar estados
         gameState.player.apply {
             hand.clear()
             discardPile.clear()
@@ -39,18 +39,18 @@ class GameEngine(private val context: Context) {
             lives = 2
         }
 
-        // Draw 10 cards for each player
+        // Repartir 10 cartas al jugador (visible)
         repeat(10) {
             gameState.player.drawCard()?.let { card ->
                 if (!gameState.player.hand.contains(card)) {
                     gameState.player.hand.add(card)
                 }
             }
-            gameState.ai.drawCard()?.let { card ->
-                if (!gameState.ai.hand.contains(card)) {
-                    gameState.ai.hand.add(card)
-                }
-            }
+        }
+
+        // Repartir 10 cartas a la IA (no visible para el jugador)
+        repeat(10) {
+            gameState.ai.drawCard()
         }
 
         gameState.currentPlayer = Random.nextBoolean()
@@ -59,7 +59,7 @@ class GameEngine(private val context: Context) {
         }
     }
 
-    // En GameEngine.kt
+
     fun playCard(card: Card, isPlayer: Boolean, selectedRow: String? = null): Boolean {
         if (gameEnded || isPlayer != gameState.currentPlayer) return false
 

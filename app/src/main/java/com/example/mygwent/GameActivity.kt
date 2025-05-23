@@ -48,34 +48,43 @@ class GameActivity : AppCompatActivity() {
     }
 
     private fun setupAdapters() {
-        // Adapter para la mano del jugador
+
         playerHandAdapter = HandAdapter { card ->
-            if (card.isUnitCard()) {
-                // Highlight the corresponding row and store selection
-                highlightRowForCard(card)
-                selectedRow = when (card.attributes.reach ?: 0) {
-                    0 -> "melee"
-                    1 -> "ranged"
-                    2 -> "siege"
-                    else -> "melee"
+                if (card.isUnitCard()) {
+                    highlightRowForCard(card)
+                    selectedRow = when (card.attributes.reach ?: 0) {
+                        0 -> "melee"
+                        1 -> "ranged"
+                        2 -> "siege"
+                        else -> "melee"
+                    }
+                } else {
+                    gameEngine.playCard(card, isPlayer = true)
+                    updateUI()
+                    resetRowHighlights()
                 }
-            } else {
-                // Play special/weather card directly
-                gameEngine.playCard(card, isPlayer = true)
-                updateUI()
-                resetRowHighlights()
             }
-        }
 
-        binding.playerHandRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
-                isItemPrefetchEnabled = false
+            binding.playerHandRecyclerView.apply {
+                layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
+                    isItemPrefetchEnabled = false
+                }
+                adapter = playerHandAdapter
+                setHasFixedSize(true)
+
+
+                val displayMetrics = resources.displayMetrics
+                val screenWidth = displayMetrics.widthPixels * 0.67f // 67% del ancho de pantalla
+                val cardWidth = (screenWidth * 0.67f * 0.5f / 5).toInt() // Mitad del ancho disponible para 5 cartas
+                val cardHeight = (cardWidth * 1.4f).toInt()
+
+
+                val horizontalPadding = (screenWidth - (cardWidth * 5)) / 2
+                setPadding(horizontalPadding.toInt(), 8, horizontalPadding.toInt(), 8)
+                clipToPadding = false
             }
-            adapter = playerHandAdapter
-            setHasFixedSize(true)
-        }
 
-        // Setup row click listeners
+
         binding.playerMeleeRow.setOnClickListener {
             if (selectedRow == "melee") {
                 playSelectedCard()
@@ -178,7 +187,6 @@ class GameActivity : AppCompatActivity() {
         // Actualizar contadores
         binding.playerScore.text = gameEngine.calculatePlayerScore().toString()
         binding.aiScore.text = gameEngine.calculateAIScore().toString()
-        binding.tvRound.text = "Ronda ${gameEngine.gameState.currentRound}"
         binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
         binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
 
@@ -270,4 +278,11 @@ class GameActivity : AppCompatActivity() {
         gameEngine.startGame(playerDeck, aiDeck)
         updateUI()
     }
+
+
+
+
+
+
+
 }

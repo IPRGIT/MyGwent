@@ -22,6 +22,27 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         selectedCard = null
     }
 
+
+
+    override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
+        val card = getItem(position)
+        holder.bind(card)
+        holder.itemView.setOnClickListener {
+            selectedCard = card
+            onClick(card)
+        }
+
+        // Ajustar tamaño de las cartas en la mano para que se vean completas
+        val displayMetrics = holder.itemView.context.resources.displayMetrics
+        val screenWidth = displayMetrics.widthPixels * 0.67f // 67% del ancho de pantalla
+        val cardWidth = (screenWidth * 0.67f * 0.5f / 5).toInt() // Mitad del ancho disponible para 5 cartas
+        val cardHeight = (cardWidth * 1.4f).toInt()
+
+        holder.itemView.layoutParams.width = cardWidth
+        holder.itemView.layoutParams.height = cardHeight
+        holder.itemView.requestLayout()
+    }
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val binding = ItemCardBinding.inflate(
             LayoutInflater.from(parent.context),
@@ -33,22 +54,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         return CardViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        val card = getItem(position)
-        holder.bind(card)
-        holder.itemView.setOnClickListener {
-            selectedCard = card
-            onClick(card)
-        }
 
-        // Ajustar tamaño de las cartas en la mano
-        val displayMetrics = holder.itemView.context.resources.displayMetrics
-        val cardWidth = (displayMetrics.widthPixels * 0.67 * 0.5 / 5).toInt() // Mitad del ancho disponible para 5 cartas
-        val cardHeight = (cardWidth * 1.4).toInt() // Proporción estándar de cartas
-
-        holder.itemView.layoutParams.width = cardWidth
-        holder.itemView.layoutParams.height = cardHeight
-    }
 
     inner class CardViewHolder(private val binding: ItemCardBinding) :
         RecyclerView.ViewHolder(binding.root) {

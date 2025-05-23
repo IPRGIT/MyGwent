@@ -7,48 +7,446 @@
     android:layout_height="match_parent"
     android:background="@drawable/board">
 
-    <!-- CONTENEDOR IZQUIERDO: Botón Pasar -->
+    <!-- CONTENEDOR IZQUIERDO modificado -->
     <LinearLayout
         android:id="@+id/leftTableContainer"
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:gravity="center"
         android:background="@drawable/lefttableasset"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintWidth_percent="0.2">
 
-        <TextView
-            android:id="@+id/aiScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="IA: 0"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="8dp"/>
+        <!-- Primer contenedor (35%) - IA -->
+        <LinearLayout
+            android:id="@+id/lefttableai"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.35"
+            android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/playerScore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Jugador: 0"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:layout_marginBottom="32dp"/>
+            <!-- Contenedor izquierdo (50%) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
 
-        <Button
-            android:id="@+id/btnPass"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Pasar"
-            android:layout_margin="16dp"/>
+
+
+
+
+                    <ImageView
+                        android:id="@+id/lefttableaiimage"
+                        android:layout_width="65dp"
+                        android:layout_height="65dp"
+                        android:src="@drawable/profile"
+                        android:layout_gravity="center"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        android:foreground="@drawable/icon_player_border"
+                        />
+
+
+                <TextView
+                    android:id="@+id/aiScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IA: 0"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold"/>
+            </LinearLayout>
+
+            <!-- Contenedor derecho (50%) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Subcontenedor superior (50%) con 4 columnas -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        >
+                        <!-- Contenedor superior (50%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                       >
+                        <!-- Contenedor inferior (50%) -->
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+
+
+
+                <!-- Subcontenedor inferior (50%) con 2 filas -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        >
+                        <!-- Contenedor 1 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                       >
+
+
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/icon_card_count"/>
+
+                        <!-- Contenedor 2 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                       >
+                        <!-- Contenedor 3 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        >
+                        <!-- Contenedor 4 (25%) -->
+                    </LinearLayout>
+
+
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Segundo contenedor (30%) -->
+        <LinearLayout
+            android:id="@+id/lefttablespecialeffect"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.30"
+            android:orientation="vertical"
+            android:gravity="center"
+           >
+
+            <ImageView
+                android:layout_width="150dp"
+                android:layout_height="100dp"
+                android:src="@drawable/specialeffectcard"/>
+
+        </LinearLayout>
+
+        <!-- Tercer contenedor (35%) - Jugador -->
+        <LinearLayout
+            android:id="@+id/lefttableplayer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.35"
+            android:orientation="horizontal">
+
+            <!-- Contenedor izquierdo (50%) -->
+
+            <!-- Contenedor derecho (50%) -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical"
+                >
+
+                <ImageView
+                    android:id="@+id/lefttableplayerimage"
+                    android:layout_width="65dp"
+                    android:layout_height="65dp"
+                    android:src="@drawable/profile"
+                    android:foreground="@drawable/icon_player_border"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintStart_toStartOf="parent" />
+
+
+                <TextView
+                    android:id="@+id/playerScore"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Jugador: 0"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <Button
+                    android:id="@+id/btnPass"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Pasar"/>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <!-- Subcontenedor superior (50%) con 4 columnas -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center">
+                        <!-- Contenedor 1 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lefttablecardsicon"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        >
+
+                        <ImageView
+                            android:layout_width="25dp"
+                            android:layout_height="25dp"
+                            android:src="@drawable/icon_card_count"/>
+
+
+                        <!-- Contenedor 2 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lefttablegem1"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/gem_placeholder">
+
+                        <!-- Contenedor 3 (25%) -->
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/lefttablegem2"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:orientation="vertical"
+                        android:gravity="center"
+                        android:background="@drawable/gem_placeholder">
+
+                        <!-- Contenedor 4 (25%) -->
+                    </LinearLayout>
+                </LinearLayout>
+
+                <!-- Subcontenedor inferior (50%) con 2 filas -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+                        <!-- Contenedor superior (50%) -->
+
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+                        <!-- Contenedor inferior (50%) -->
+                    </LinearLayout>
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- CONTENEDOR CENTRAL: Juego -->
+    <!-- CONTENEDOR DERECHO (sin cambios) -->
+    <LinearLayout
+        android:id="@+id/rightTableContainer"
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="@drawable/righttableasset"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/gameContainer"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintWidth_percent="0.128">
+
+        <!-- Primer contenedor (20%) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.20"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+
+                <ImageView
+                    android:id="@+id/discardedcardai"
+                    android:layout_width="50dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/discardedcards"
+                   />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+            <ImageView
+                android:id="@+id/aiDeckImage"
+                android:layout_width="30dp"
+                android:layout_height="50dp"
+                android:contentDescription="AI Deck"/>
+
+            <TextView
+                android:id="@+id/aiDeckCount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Segundo contenedor (60%) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.60"
+            android:gravity="center"
+            android:orientation="vertical">
+            <!-- Espacio para elementos adicionales -->
+        </LinearLayout>
+
+        <!-- Tercer contenedor (20%) -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="0.20"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:orientation="vertical"
+                android:gravity="center">
+
+                <ImageView
+                    android:id="@+id/discardedcardplayer"
+                    android:layout_width="50dp"
+                    android:layout_height="60dp"
+                    android:src="@drawable/discardedcards"
+                    />
+
+            </LinearLayout>
+
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <ImageView
+                    android:id="@+id/playerDeckImage"
+                    android:layout_width="30dp"
+                    android:layout_height="50dp"
+                    android:contentDescription="Player Deck" />
+
+                <TextView
+                    android:id="@+id/playerDeckCount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- CONTENEDOR CENTRAL: Juego (sin cambios) -->
     <LinearLayout
         android:id="@+id/gameContainer"
         android:layout_width="0dp"
@@ -59,6 +457,7 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintWidth_percent="0.67">
 
+        <!-- Contenido del juego (sin cambios) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -131,15 +530,6 @@
             </androidx.constraintlayout.widget.ConstraintLayout>
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/tvRound"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Ronda 1"
-            android:textColor="@android:color/white"
-            android:textSize="18sp"
-            android:layout_gravity="center"/>
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -176,10 +566,6 @@
                 android:layout_height="match_parent"
                 android:layout_weight="0.94">
 
-
-
-
-                <!-- Para las filas de ataque -->
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/playerMeleeRow"
                     android:layout_width="0dp"
@@ -236,67 +622,6 @@
                 android:paddingEnd="16dp"
                 android:paddingTop="8dp"
                 android:paddingBottom="8dp"/>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
-    </LinearLayout>
-
-    <!-- CONTENEDOR DERECHO: Mazo IA y jugador -->
-    <LinearLayout
-        android:id="@+id/rightTableContainer"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:background="@drawable/righttableasset"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/gameContainer"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintWidth_percent="0.128">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/aiDeckImage"
-                android:layout_width="60dp"
-                android:layout_height="80dp"
-                android:contentDescription="AI Deck" />
-
-            <TextView
-                android:id="@+id/aiDeckCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/playerDeckImage"
-                android:layout_width="60dp"
-                android:layout_height="80dp"
-                android:contentDescription="Player Deck" />
-
-            <TextView
-                android:id="@+id/playerDeckCount"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0"
-                android:textColor="@android:color/white"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-        </LinearLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
