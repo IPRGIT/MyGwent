@@ -199,6 +199,7 @@
                 android:orientation="vertical"
                 >
 
+
                 <ImageView
                     android:id="@+id/lefttableplayerimage"
                     android:layout_width="65dp"
