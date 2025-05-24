@@ -6,4 +6,6 @@
     <color name="Accent">#106B27</color>
     <color name="Board">#18120F</color>
     <color name="gold_highlight">#A67F01</color>
+    <color name="card_background">#00000000</color>
+
 </resources>

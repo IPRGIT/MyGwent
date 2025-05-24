@@ -47,102 +47,80 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupAdapters() {
 
+
+
+    private fun setupAdapters() {
         playerHandAdapter = HandAdapter { card ->
-                if (card.isUnitCard()) {
-                    highlightRowForCard(card)
-                    selectedRow = when (card.attributes.reach ?: 0) {
-                        0 -> "melee"
-                        1 -> "ranged"
-                        2 -> "siege"
-                        else -> "melee"
-                    }
-                } else {
-                    gameEngine.playCard(card, isPlayer = true)
+            if (card.isUnitCard()) {
+                highlightRowForCard(card)
+                selectedRow = when (card.attributes.reach ?: 0) {
+                    0 -> "melee"
+                    1 -> "ranged"
+                    2 -> "siege"
+                    else -> "melee"
+                }
+            } else {
+                // Para cartas especiales/meteorológicas
+                if (gameEngine.playCard(card, isPlayer = true)) {
                     updateUI()
                     resetRowHighlights()
                 }
             }
+        }
 
-            binding.playerHandRecyclerView.apply {
-                layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
-                    isItemPrefetchEnabled = false
-                }
-                adapter = playerHandAdapter
-                setHasFixedSize(true)
+        // Configurar RecyclerView para la mano del jugador
+        binding.playerHandRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = playerHandAdapter
+            setHasFixedSize(true)
 
+            // Añadir padding para centrar las cartas
+            val displayMetrics = resources.displayMetrics
+            val screenWidth = displayMetrics.widthPixels * 0.67f
+            val totalCardWidth = (screenWidth * 0.18f * 10) // Ancho de 10 cartas
+            val horizontalPadding = ((screenWidth - totalCardWidth) / 2).coerceAtLeast(0f)
 
-                val displayMetrics = resources.displayMetrics
-                val screenWidth = displayMetrics.widthPixels * 0.67f // 67% del ancho de pantalla
-                val cardWidth = (screenWidth * 0.67f * 0.5f / 5).toInt() // Mitad del ancho disponible para 5 cartas
-                val cardHeight = (cardWidth * 1.4f).toInt()
+            setPadding(horizontalPadding.toInt(), 16, horizontalPadding.toInt(), 16)
+            clipToPadding = false
+        }
 
+        // Configurar adaptadores para las filas del jugador y la IA
+        playerMeleeAdapter = HandAdapter.BoardRowAdapter()
+        playerRangedAdapter = HandAdapter.BoardRowAdapter()
+        playerSiegeAdapter = HandAdapter.BoardRowAdapter()
+        aiMeleeAdapter = HandAdapter.BoardRowAdapter()
+        aiRangedAdapter = HandAdapter.BoardRowAdapter()
+        aiSiegeAdapter = HandAdapter.BoardRowAdapter()
 
-                val horizontalPadding = (screenWidth - (cardWidth * 5)) / 2
-                setPadding(horizontalPadding.toInt(), 8, horizontalPadding.toInt(), 8)
-                clipToPadding = false
-            }
+        // Configurar RecyclerViews para las filas
+        listOf(
+            binding.playerMeleeRow to playerMeleeAdapter,
+            binding.playerRangedRow to playerRangedAdapter,
+            binding.playerSiegeRow to playerSiegeAdapter,
+            binding.aiMeleeRow to aiMeleeAdapter,
+            binding.aiRangedRow to aiRangedAdapter,
+            binding.aiSiegeRow to aiSiegeAdapter
+        ).forEach { (recyclerView, adapter) ->
+            recyclerView.layoutManager = LinearLayoutManager(
+                this@GameActivity,
+                LinearLayoutManager.HORIZONTAL,
+                false
+            )
+            recyclerView.adapter = adapter
+            recyclerView.setHasFixedSize(true)
+            recyclerView.itemAnimator = null // Desactivar animaciones para evitar parpadeos
+        }
 
-
+        // Configurar listeners para las filas
         binding.playerMeleeRow.setOnClickListener {
-            if (selectedRow == "melee") {
-                playSelectedCard()
-            }
+            if (selectedRow == "melee") playSelectedCard()
         }
         binding.playerRangedRow.setOnClickListener {
-            if (selectedRow == "ranged") {
-                playSelectedCard()
-            }
+            if (selectedRow == "ranged") playSelectedCard()
         }
         binding.playerSiegeRow.setOnClickListener {
-            if (selectedRow == "siege") {
-                playSelectedCard()
-            }
-        }
-
-        // Adapters para las filas del jugador
-        playerMeleeAdapter = HandAdapter.BoardRowAdapter()
-        binding.playerMeleeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerMeleeAdapter
-            setHasFixedSize(true)
-        }
-
-        playerRangedAdapter = HandAdapter.BoardRowAdapter()
-        binding.playerRangedRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerRangedAdapter
-            setHasFixedSize(true)
-        }
-
-        playerSiegeAdapter = HandAdapter.BoardRowAdapter()
-        binding.playerSiegeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerSiegeAdapter
-            setHasFixedSize(true)
-        }
-
-        // Adapters para las filas de la IA
-        aiMeleeAdapter = HandAdapter.BoardRowAdapter()
-        binding.aiMeleeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = aiMeleeAdapter
-            setHasFixedSize(true)
-        }
-
-        aiRangedAdapter = HandAdapter.BoardRowAdapter()
-        binding.aiRangedRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = aiRangedAdapter
-            setHasFixedSize(true)
-        }
-
-        aiSiegeAdapter = HandAdapter.BoardRowAdapter()
-        binding.aiSiegeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = aiSiegeAdapter
-            setHasFixedSize(true)
+            if (selectedRow == "siege") playSelectedCard()
         }
 
         binding.btnPass.setOnClickListener {
@@ -152,31 +130,32 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    // En GameActivity.kt
+
+
+
+
+
     private fun playSelectedCard() {
         selectedRow?.let { row ->
             playerHandAdapter.getSelectedCard()?.let { card ->
                 if (gameEngine.playCard(card, isPlayer = true, row)) {
-                    // Actualizar UI inmediatamente después de jugar la carta
                     updateUI()
                     resetRowHighlights()
                     selectedRow = null
                     playerHandAdapter.clearSelection()
-
-                    // Verificar si el juego ha terminado
-                    if (gameEngine.gameState.player.lives <= 0 || gameEngine.gameState.ai.lives <= 0) {
-                        // Mostrar resultado del juego
-                        val message = if (gameEngine.gameState.player.lives <= 0)
-                            "Has perdido la partida" else "¡Has ganado la partida!"
-                        Toast.makeText(this, message, Toast.LENGTH_LONG).show()
-                    }
                 }
             }
         }
     }
 
+
+
+
     private fun updateUI() {
+        // Actualizar la mano del jugador
         playerHandAdapter.submitList(gameEngine.gameState.player.hand.toList())
+
+        // Actualizar las filas del tablero
         playerMeleeAdapter.submitList(gameEngine.gameState.player.board["melee"] ?: emptyList())
         playerRangedAdapter.submitList(gameEngine.gameState.player.board["ranged"] ?: emptyList())
         playerSiegeAdapter.submitList(gameEngine.gameState.player.board["siege"] ?: emptyList())
@@ -189,13 +168,9 @@ class GameActivity : AppCompatActivity() {
         binding.aiScore.text = gameEngine.calculateAIScore().toString()
         binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
         binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
-
-        // Forzar redibujado de las vistas
-        binding.playerHandRecyclerView.invalidate()
-        binding.playerMeleeRow.invalidate()
-        binding.playerRangedRow.invalidate()
-        binding.playerSiegeRow.invalidate()
     }
+
+
 
 
 
@@ -220,24 +195,6 @@ class GameActivity : AppCompatActivity() {
 
         binding.playerDeckImage.setImageResource(playerDeckRes)
         binding.aiDeckImage.setImageResource(aiDeckRes)
-    }
-
-    private fun highlightRowForCard(card: Card) {
-        resetRowHighlights()
-        val reach = card.attributes.reach ?: -1
-        val rowView = when (reach) {
-            0 -> binding.playerMeleeRow
-            1 -> binding.playerRangedRow
-            2 -> binding.playerSiegeRow
-            else -> null
-        }
-        rowView?.setBackgroundColor(ContextCompat.getColor(this, R.color.gold_highlight))
-    }
-
-    private fun resetRowHighlights() {
-        binding.playerMeleeRow.setBackgroundColor(Color.TRANSPARENT)
-        binding.playerRangedRow.setBackgroundColor(Color.TRANSPARENT)
-        binding.playerSiegeRow.setBackgroundColor(Color.TRANSPARENT)
     }
 
 
@@ -279,6 +236,24 @@ class GameActivity : AppCompatActivity() {
         updateUI()
     }
 
+
+    private fun highlightRowForCard(card: Card) {
+        resetRowHighlights()
+        val reach = card.attributes.reach ?: -1
+        val rowView = when (reach) {
+            0 -> binding.playerMeleeRow
+            1 -> binding.playerRangedRow
+            2 -> binding.playerSiegeRow
+            else -> null
+        }
+        rowView?.background?.mutate()?.alpha = 150 // Semi-transparente
+    }
+
+    private fun resetRowHighlights() {
+        listOf(binding.playerMeleeRow, binding.playerRangedRow, binding.playerSiegeRow).forEach { row ->
+            row.background?.mutate()?.alpha = 255 // Opaco (valor original)
+        }
+    }
 
 
 

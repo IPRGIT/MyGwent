@@ -15,6 +15,9 @@ class GameEngine(private val context: Context) {
     private var gameEnded = false
 
     fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
+
+
+        gameState.currentPlayer = true // El jugador siempre empieza primero
         gameEnded = false
         gameState.currentRound = 1
         gameState.weatherEffects.clear()
@@ -53,10 +56,7 @@ class GameEngine(private val context: Context) {
             gameState.ai.drawCard()
         }
 
-        gameState.currentPlayer = Random.nextBoolean()
-        if (!gameState.currentPlayer) {
-            aiTurn()
-        }
+
     }
 
 
@@ -75,7 +75,7 @@ class GameEngine(private val context: Context) {
         }
 
         if (success) {
-            currentPlayer.hand.remove(card)
+            currentPlayer.hand.remove(card) // Asegurar que la carta se elimina de la mano
             switchTurn()
         }
 
@@ -150,10 +150,10 @@ class GameEngine(private val context: Context) {
     }
 
     private fun aiTurn() {
-        // Simple AI: play a random card or pass
-        if (gameState.ai.hand.isNotEmpty() && Random.nextFloat() < 0.8f) {
+        if (gameState.ai.hand.isNotEmpty() && !gameState.ai.passed && Random.nextFloat() < 0.8f) {
             val card = gameState.ai.hand.random()
             val row = when (card.attributes.reach ?: 0) {
+                0 -> "melee"
                 1 -> "ranged"
                 2 -> "siege"
                 else -> "melee"

@@ -7,7 +7,8 @@
     android:layout_height="match_parent"
     android:background="@drawable/board_background">
 
-    <!-- CONTENEDOR IZQUIERDO modificado -->
+
+<!-- CONTENEDOR IZQUIERDO modificado -->
     <LinearLayout
         android:id="@+id/leftTableContainer"
         android:layout_width="0dp"
@@ -632,3 +633,6 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </LinearLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
