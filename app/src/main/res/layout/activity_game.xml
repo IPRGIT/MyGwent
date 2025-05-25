@@ -147,7 +147,14 @@
                         android:orientation="vertical"
                         android:gravity="center"
                        >
-                        <!-- Contenedor 3 (25%) -->
+
+                        <ImageView
+                            android:id="@+id/aiGem1Image"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:scaleType="fitXY"/>
+
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -158,7 +165,14 @@
                         android:orientation="vertical"
                         android:gravity="center"
                         >
-                        <!-- Contenedor 4 (25%) -->
+
+                        <ImageView
+                            android:id="@+id/aiGem2Image"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:scaleType="fitXY"/>
+
+
                     </LinearLayout>
 
 
@@ -170,16 +184,15 @@
         <LinearLayout
             android:id="@+id/lefttablespecialeffect"
             android:layout_width="match_parent"
-            android:layout_height="0dp"
+            android:layout_height="wrap_content"
             android:layout_weight="0.30"
-            android:orientation="vertical"
             android:gravity="center"
-           >
+            android:orientation="vertical">
 
             <ImageView
                 android:layout_width="150dp"
                 android:layout_height="100dp"
-                android:src="@drawable/specialeffectcard"/>
+                android:src="@drawable/specialeffectcard" />
 
         </LinearLayout>
 
@@ -272,14 +285,21 @@
 
                     <LinearLayout
                         android:id="@+id/lefttablegemplayer1"
-                        android:layout_width="0dp"
+                        android:layout_width="3dp"
                         android:layout_height="match_parent"
                         android:layout_weight="1"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:background="@drawable/gem_placeholder">
+                        >
 
-                        <!-- Contenedor 3 (25%) -->
+
+                        <ImageView
+                            android:id="@+id/playerGem1Image"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:scaleType="fitXY"/>
+
+
                     </LinearLayout>
 
                     <LinearLayout
@@ -291,7 +311,15 @@
                         android:gravity="center"
                         android:background="@drawable/gem_placeholder">
 
-                        <!-- Contenedor 4 (25%) -->
+
+
+                        <ImageView
+                            android:id="@+id/playerGem2Image"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:scaleType="fitXY"/>
+
+
                     </LinearLayout>
                 </LinearLayout>
 

@@ -2,17 +2,69 @@ package com.example.mygwent.game
 
 import Player
 import android.content.Context
+import android.widget.Toast
 import com.example.mygwent.data.Card
 import com.example.mygwent.data.GameState
 import kotlin.random.Random
 
 class GameEngine(private val context: Context) {
+
     val gameState = GameState(
         player = Player(deck = mutableListOf()),
         ai = Player(deck = mutableListOf())
     )
 
     private var gameEnded = false
+
+
+    private fun endRound() {
+        val playerScore = calculatePlayerScore()
+        val aiScore = calculateAIScore()
+
+        when {
+            playerScore > aiScore -> {
+                gameState.aiLosesGem()
+                Toast.makeText(context, "¡Ganaste la ronda!", Toast.LENGTH_SHORT).show()
+            }
+            aiScore > playerScore -> {
+                gameState.playerLosesGem()
+                Toast.makeText(context, "La IA ganó la ronda", Toast.LENGTH_SHORT).show()
+            }
+            else -> {
+                // Empate - ambos pierden una gema
+                gameState.playerLosesGem()
+                gameState.aiLosesGem()
+                Toast.makeText(context, "Empate - Ambos pierden una gema", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        if (gameState.isGameOver()) {
+            endGame()
+            return
+        }
+
+        prepareNextRound()
+    }
+
+    private fun endGame() {
+        gameEnded = true
+        val playerScore = calculatePlayerScore()
+        val aiScore = calculateAIScore()
+
+        val message = when {
+            gameState.playerGems == 0 -> "¡La IA ganó la partida!"
+            gameState.aiGems == 0 -> "¡Ganaste la partida!"
+            playerScore > aiScore -> "¡Ganaste la partida por puntos!"
+            aiScore > playerScore -> "La IA ganó la partida por puntos"
+            else -> "¡Empate en la partida!"
+        }
+
+        Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+
+
+    }
+
+
 
     fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
 
@@ -96,7 +148,6 @@ class GameEngine(private val context: Context) {
     }
 
 
-
     private fun playSpecialCard(player: Player, card: Card): Boolean {
         applySpecialCard(card, player == gameState.player)
         player.discardPile.add(card)
@@ -164,22 +215,7 @@ class GameEngine(private val context: Context) {
         }
     }
 
-    private fun endRound() {
-        val playerScore = calculatePlayerScore()
-        val aiScore = calculateAIScore()
 
-        when {
-            playerScore > aiScore -> gameState.ai.lives--
-            aiScore > playerScore -> gameState.player.lives--
-        }
-
-        if (gameState.player.lives <= 0 || gameState.ai.lives <= 0) {
-            endGame()
-            return
-        }
-
-        prepareNextRound()
-    }
 
     private fun prepareNextRound() {
         gameState.currentRound++
@@ -212,10 +248,7 @@ class GameEngine(private val context: Context) {
         }
     }
 
-    private fun endGame() {
-        gameEnded = true
-        // TODO: Handle game end
-    }
+
 
     fun calculatePlayerScore(): Int {
         return calculateScore(gameState.player)
@@ -237,4 +270,6 @@ class GameEngine(private val context: Context) {
         }
         return totalScore
     }
+
+
 }

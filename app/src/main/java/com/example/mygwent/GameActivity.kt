@@ -16,6 +16,7 @@ import com.example.mygwent.game.GameEngine
 import kotlinx.coroutines.launch
 
 class GameActivity : AppCompatActivity() {
+
     private lateinit var binding: ActivityGameBinding
     private lateinit var gameEngine: GameEngine
     private lateinit var playerHandAdapter: HandAdapter
@@ -28,13 +29,47 @@ class GameActivity : AppCompatActivity() {
     private lateinit var aiSiegeAdapter: HandAdapter.BoardRowAdapter
     private var selectedRow: String? = null
 
+
+
+
+    private fun setupGemViews() {
+        // Set initial gem images
+        updateGemViews()
+    }
+
+    private fun updateGemViews() {
+        // Player gems
+        val playerGem1Res = if (gameEngine.gameState.playerGems >= 1)
+            R.drawable.icon_gem_on else R.drawable.icon_gem_off
+        val playerGem2Res = if (gameEngine.gameState.playerGems >= 2)
+            R.drawable.icon_gem_on else R.drawable.icon_gem_off
+
+        binding.playerGem1Image.setImageResource(playerGem1Res)
+        binding.playerGem2Image.setImageResource(playerGem2Res)
+
+        // AI gems
+        val aiGem1Res = if (gameEngine.gameState.aiGems >= 1)
+            R.drawable.icon_gem_on else R.drawable.icon_gem_off
+        val aiGem2Res = if (gameEngine.gameState.aiGems >= 2)
+            R.drawable.icon_gem_on else R.drawable.icon_gem_off
+
+        binding.aiGem1Image.setImageResource(aiGem1Res)
+        binding.aiGem2Image.setImageResource(aiGem2Res)
+    }
+
+
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         gameEngine = GameEngine(this)
         setupAdapters()
+        setupGemViews()
+
 
         lifecycleScope.launch {
             viewModel.allCards.collect { cards ->
@@ -153,6 +188,9 @@ class GameActivity : AppCompatActivity() {
 
 
     private fun updateUI() {
+
+            updateGemViews()
+
         // Actualizar la mano del jugador
         playerHandAdapter.submitList(gameEngine.gameState.player.hand.toList())
 
@@ -164,9 +202,19 @@ class GameActivity : AppCompatActivity() {
         aiRangedAdapter.submitList(gameEngine.gameState.ai.board["ranged"] ?: emptyList())
         aiSiegeAdapter.submitList(gameEngine.gameState.ai.board["siege"] ?: emptyList())
 
+        /*
         // Actualizar contadores
         binding.playerScore.text = gameEngine.calculatePlayerScore().toString()
         binding.aiScore.text = gameEngine.calculateAIScore().toString()
+        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
+        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
+
+
+         */
+
+        // Update scores and other UI elements
+        binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
+        binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
         binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
         binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
     }
@@ -262,3 +310,4 @@ class GameActivity : AppCompatActivity() {
 
 
 }
+
