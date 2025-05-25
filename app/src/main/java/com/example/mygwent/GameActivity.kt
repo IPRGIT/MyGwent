@@ -68,6 +68,7 @@ class GameActivity : AppCompatActivity() {
                 }
             }
         }
+        
 
         // Configurar RecyclerView para la mano del jugador
         binding.playerHandRecyclerView.apply {
