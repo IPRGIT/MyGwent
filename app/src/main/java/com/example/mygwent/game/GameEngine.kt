@@ -66,50 +66,6 @@ class GameEngine(private val context: Context) {
 
 
 
-    fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
-
-
-        gameState.currentPlayer = true // El jugador siempre empieza primero
-        gameEnded = false
-        gameState.currentRound = 1
-        gameState.weatherEffects.clear()
-
-        gameState.player.deck = playerDeck.toMutableList().apply { shuffle() }
-        gameState.ai.deck = aiDeck.toMutableList().apply { shuffle() }
-
-        // Limpiar estados
-        gameState.player.apply {
-            hand.clear()
-            discardPile.clear()
-            board.values.forEach { it.clear() }
-            passed = false
-            lives = 2
-        }
-
-        gameState.ai.apply {
-            hand.clear()
-            discardPile.clear()
-            board.values.forEach { it.clear() }
-            passed = false
-            lives = 2
-        }
-
-        // Repartir 10 cartas al jugador (visible)
-        repeat(10) {
-            gameState.player.drawCard()?.let { card ->
-                if (!gameState.player.hand.contains(card)) {
-                    gameState.player.hand.add(card)
-                }
-            }
-        }
-
-        // Repartir 10 cartas a la IA (no visible para el jugador)
-        repeat(10) {
-            gameState.ai.drawCard()
-        }
-
-
-    }
 
 
     fun playCard(card: Card, isPlayer: Boolean, selectedRow: String? = null): Boolean {
@@ -217,36 +173,6 @@ class GameEngine(private val context: Context) {
 
 
 
-    private fun prepareNextRound() {
-        gameState.currentRound++
-        gameState.weatherEffects.clear()
-
-        gameState.player.passed = false
-        gameState.ai.passed = false
-
-        gameState.player.apply {
-            board.values.forEach { row ->
-                discardPile.addAll(row)
-                row.clear()
-            }
-            hand.clear() // Clear hand before drawing new cards
-        }
-
-        gameState.ai.apply {
-            board.values.forEach { row ->
-                discardPile.addAll(row)
-                row.clear()
-            }
-            hand.clear() // Clear hand before drawing new cards
-        }
-
-        gameState.currentPlayer = calculatePlayerScore() < calculateAIScore()
-
-        repeat(2) {
-            gameState.player.drawCard()
-            gameState.ai.drawCard()
-        }
-    }
 
 
 
@@ -272,4 +198,152 @@ class GameEngine(private val context: Context) {
     }
 
 
+
+        private fun ensureReachVariety(deck: List<Card>): List<Card> {
+            val reach0Cards = deck.filter { it.attributes.reach == 0 }
+            val reach1Cards = deck.filter { it.attributes.reach == 1 }
+            val reach2Cards = deck.filter { it.attributes.reach == 2 }
+
+            // Si falta algún tipo de alcance, añadir cartas aleatorias de ese tipo
+            val newDeck = deck.toMutableList()
+            if (reach0Cards.isEmpty()) {
+                deck.firstOrNull { it.attributes.reach != null }?.let { newDeck.add(it.copy(attributes = it.attributes.copy(reach = 0))) }
+            }
+            if (reach1Cards.isEmpty()) {
+                deck.firstOrNull { it.attributes.reach != null }?.let { newDeck.add(it.copy(attributes = it.attributes.copy(reach = 1))) }
+            }
+            if (reach2Cards.isEmpty()) {
+                deck.firstOrNull { it.attributes.reach != null }?.let { newDeck.add(it.copy(attributes = it.attributes.copy(reach = 2))) }
+            }
+
+            return newDeck
+        }
+
+
+        fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
+            // Asegurar que cada mazo tenga al menos 3 cartas de cada tipo de alcance
+            val preparedPlayerDeck = prepareDeckWithReachVariety(playerDeck)
+            val preparedAiDeck = prepareDeckWithReachVariety(aiDeck)
+
+            gameState.player.deck = preparedPlayerDeck.toMutableList().apply { shuffle() }
+            gameState.ai.deck = preparedAiDeck.toMutableList().apply { shuffle() }
+
+            // Repartir 10 cartas asegurando al menos 1 de cada reach
+            dealInitialHands()
+        }
+
+        private fun prepareDeckWithReachVariety(deck: List<Card>): List<Card> {
+            val reach0Cards = deck.filter { it.attributes.reach == 0 }
+            val reach1Cards = deck.filter { it.attributes.reach == 1 }
+            val reach2Cards = deck.filter { it.attributes.reach == 2 }
+
+            val newDeck = deck.toMutableList()
+
+            // Añadir cartas si no hay suficientes de algún tipo
+            if (reach0Cards.size < 3) {
+                repeat(3 - reach0Cards.size) {
+                    deck.firstOrNull { it.attributes.reach != null }?.let {
+                        newDeck.add(it.copy(attributes = it.attributes.copy(reach = 0)))
+                    }
+                }
+            }
+            if (reach1Cards.size < 3) {
+                repeat(3 - reach1Cards.size) {
+                    deck.firstOrNull { it.attributes.reach != null }?.let {
+                        newDeck.add(it.copy(attributes = it.attributes.copy(reach = 1)))
+                    }
+                }
+            }
+            if (reach2Cards.size < 3) {
+                repeat(3 - reach2Cards.size) {
+                    deck.firstOrNull { it.attributes.reach != null }?.let {
+                        newDeck.add(it.copy(attributes = it.attributes.copy(reach = 2)))
+                    }
+                }
+            }
+
+            return newDeck
+        }
+
+        private fun dealInitialHands() {
+            // Repartir al jugador asegurando al menos 1 carta de cada reach
+            val playerHand = mutableListOf<Card>()
+            val reachTypes = listOf(0, 1, 2)
+
+            // Añadir al menos 1 carta de cada reach
+            reachTypes.forEach { reach ->
+                val card = gameState.player.deck.firstOrNull { it.attributes.reach == reach }
+                card?.let {
+                    playerHand.add(it)
+                    gameState.player.deck.remove(it)
+                }
+            }
+
+            // Completar hasta 10 cartas
+            while (playerHand.size < 10 && gameState.player.deck.isNotEmpty()) {
+                playerHand.add(gameState.player.deck.removeAt(0))
+            }
+
+            gameState.player.hand.addAll(playerHand)
+
+            // Hacer lo mismo para la IA
+            val aiHand = mutableListOf<Card>()
+            reachTypes.forEach { reach ->
+                val card = gameState.ai.deck.firstOrNull { it.attributes.reach == reach }
+                card?.let {
+                    aiHand.add(it)
+                    gameState.ai.deck.remove(it)
+                }
+            }
+
+            while (aiHand.size < 10 && gameState.ai.deck.isNotEmpty()) {
+                aiHand.add(gameState.ai.deck.removeAt(0))
+            }
+
+            gameState.ai.hand.addAll(aiHand)
+        }
+
+        fun prepareNextRound() {
+            gameState.currentRound++
+            gameState.player.passed = false
+            gameState.ai.passed = false
+
+            // Limpiar tableros y mover cartas a descarte
+            gameState.player.board.values.forEach { row ->
+                gameState.player.discardPile.addAll(row)
+                row.clear()
+            }
+            gameState.ai.board.values.forEach { row ->
+                gameState.ai.discardPile.addAll(row)
+                row.clear()
+            }
+
+            // Robar 2 cartas nuevas
+            repeat(2) {
+                gameState.player.drawCard()
+                gameState.ai.drawCard()
+            }
+        }
+
+
+
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

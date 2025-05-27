@@ -1,7 +1,6 @@
 package com.example.mygwent.adapter
 
 import android.content.Context
-import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -21,9 +20,19 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
     ListAdapter<Card, HandAdapter.CardViewHolder>(CardDiffCallback()) {
 
     private var selectedCard: Card? = null
+    private var highlightedRows: List<String> = emptyList()
 
     fun getSelectedCard(): Card? = selectedCard
-    fun clearSelection() { selectedCard = null }
+    fun clearSelection() {
+        selectedCard = null
+        notifyDataSetChanged()
+    }
+
+
+    fun setHighlightedRows(rows: List<String>) {
+        highlightedRows = rows
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val binding = ItemCardBinding.inflate(
@@ -32,65 +41,18 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             false
         ).apply {
             root.setBackgroundResource(android.R.color.transparent)
+
+            // Reducir tamaño de las cartas a la mitad (9% del ancho de pantalla)
+            val displayMetrics = parent.context.resources.displayMetrics
+            val cardWidth = (displayMetrics.widthPixels * 0.15f).toInt()
+            val cardHeight = (cardWidth * 1f).toInt()
+
+            root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
         }
         return CardViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-        val card = getItem(position)
-        holder.bind(card)
-        holder.itemView.setOnClickListener {
-            selectedCard = card
-            onClick(card)
-        }
-    }
 
-    inner class CardViewHolder(private val binding: ItemCardBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        fun bind(card: Card) {
-            // Calcular tamaño de la carta
-            val (cardWidth, cardHeight) = CardSizeHelper.calculateCardSize(
-                binding.root.context,
-                isHand = true
-            )
-
-            // Configurar layout
-            binding.root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
-            binding.root.requestLayout()
-
-            // Configurar elementos de la carta
-            binding.cardName.text = card.name
-            binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
-
-            // Configurar imagen con Glide
-            Glide.with(binding.root)
-                .load(card.art)
-                .override(cardWidth, cardHeight)
-                .transform(
-                    MultiTransformation(
-                        CenterCrop(),
-                        RoundedCorners(16)
-                    )
-                )
-                .placeholder(R.drawable.card_placeholder)
-                .error(R.drawable.card_error)
-                .into(binding.cardImage)
-
-            // Configurar marco dorado si es carta dorada
-            binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
-            binding.cardBorder.layoutParams = FrameLayout.LayoutParams(cardWidth, cardHeight)
-
-            // Configurar fuerza
-            card.power?.let {
-                binding.cardStrength.text = it.toString()
-                binding.cardStrength.visibility = View.VISIBLE
-                binding.cardStrength.textSize = cardWidth * 0.1f
-            } ?: run {
-                binding.cardStrength.visibility = View.GONE
-            }
-        }
-    }
 
     class CardDiffCallback : DiffUtil.ItemCallback<Card>() {
         override fun areItemsTheSame(oldItem: Card, newItem: Card): Boolean {
@@ -102,6 +64,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         }
     }
 
+    // Clase para mostrar cartas en el tablero (BoardRowAdapter)
     class BoardRowAdapter : ListAdapter<Card, BoardRowAdapter.CardViewHolder>(CardDiffCallback()) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
             val binding = ItemCardBinding.inflate(
@@ -137,7 +100,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                 binding.root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
                 binding.root.requestLayout()
 
-                // Configurar elementos de la carta (igual que en HandAdapter)
+                // Configurar elementos de la carta
                 binding.cardName.text = card.name
                 binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
 
@@ -184,4 +147,70 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             }
         }
     }
+
+
+
+        override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
+            val card = getItem(position)
+            holder.bind(card, card == selectedCard)
+
+            holder.itemView.setOnClickListener {
+                selectedCard = card
+                notifyDataSetChanged()
+                onClick(card)
+            }
+        }
+
+        inner class CardViewHolder(private val binding: ItemCardBinding) :
+            RecyclerView.ViewHolder(binding.root) {
+
+            fun bind(card: Card, isSelected: Boolean) {
+                // Configurar elementos de la carta
+                binding.cardName.text = card.name
+                binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+
+                // Configurar imagen con Glide
+                Glide.with(binding.root)
+                    .load(card.art)
+                    .transform(
+                        MultiTransformation(
+                            CenterCrop(),
+                            RoundedCorners(16)
+                        )
+                    )
+                    .placeholder(R.drawable.card_placeholder)
+                    .error(R.drawable.card_error)
+                    .into(binding.cardImage)
+
+                // Resaltar si está seleccionada
+                if (isSelected) {
+                    binding.root.alpha = 1.0f
+                    binding.cardBorder.visibility = View.VISIBLE
+                } else {
+                    binding.root.alpha = 0.7f
+                    binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+                }
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 }
