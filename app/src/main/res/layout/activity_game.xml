@@ -416,15 +416,20 @@
 
         </LinearLayout>
 
-        <!-- Segundo contenedor (60%) -->
-        <LinearLayout
+        <FrameLayout
+            android:id="@+id/fullsize_card"
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:layout_weight="0.60"
-            android:gravity="center"
-            android:orientation="vertical">
-            <!-- Espacio para elementos adicionales -->
-        </LinearLayout>
+            android:background="@android:color/transparent"
+            android:clickable="true"
+            android:focusable="true">
+
+            <ImageView
+                android:id="@+id/fullSizeCardImage"
+                style="@style/FullSizeCard"
+                android:visibility="gone"/>
+        </FrameLayout>
 
         <!-- Tercer contenedor (20%) -->
         <LinearLayout

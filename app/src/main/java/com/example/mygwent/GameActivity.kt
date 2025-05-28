@@ -4,11 +4,13 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.bumptech.glide.Glide
 import com.example.mygwent.adapter.HandAdapter
 import com.example.mygwent.data.Card
 import com.example.mygwent.databinding.ActivityGameBinding
@@ -33,6 +35,7 @@ class GameActivity : AppCompatActivity() {
     private var selectedValidRows: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -51,6 +54,15 @@ class GameActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // En el onCreate de GameActivity
+        binding.fullsizeCard.setOnClickListener {
+            hideFullSizeCard()
+            selectedCard = null
+            playerHandAdapter.clearSelection()
+            resetRowHighlights()
+        }
+
     }
 
     private fun setupGemViews() {
@@ -173,6 +185,7 @@ class GameActivity : AppCompatActivity() {
         // Inicializar todos los adaptadores primero
         playerHandAdapter = HandAdapter { card ->
             selectedCard = card
+            showFullSizeCard(card)
             // Determinar filas válidas para la carta
             selectedValidRows = when (card.attributes.reach ?: 0) {
                 0 -> listOf("melee")
@@ -181,6 +194,16 @@ class GameActivity : AppCompatActivity() {
                 else -> listOf("melee", "ranged", "siege")
             }
             highlightRows(selectedValidRows)
+
+
+            // Configurar click listener para el contenedor del juego
+            binding.gameContainer.setOnClickListener {
+                selectedCard = null
+                playerHandAdapter.clearSelection()
+                resetRowHighlights()
+                hideFullSizeCard()
+            }
+
         }
 
         // Inicializar adaptadores para las filas del jugador y la IA
@@ -260,21 +283,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-        private fun playSelectedCard(row: String) {
-            selectedCard?.let { card ->
-                if (gameEngine.playCard(card, isPlayer = true, row)) {
-                    updateUI()
-                    resetRowHighlights()
-                    selectedCard = null
-                    playerHandAdapter.clearSelection()
 
-                    // Turno de la IA
-                    Handler(Looper.getMainLooper()).postDelayed({
-                        playAITurn()
-                    }, 1000)
-                }
-            }
-        }
 
         private fun playAITurn() {
             if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
@@ -358,6 +367,37 @@ class GameActivity : AppCompatActivity() {
                 else R.drawable.icon_gem_off
             )
         }
+
+    private fun showFullSizeCard(card: Card) {
+        Glide.with(this)
+            .load(card.art)
+            .placeholder(R.drawable.card_placeholder)
+            .error(R.drawable.card_error)
+            .into(binding.fullSizeCardImage)
+
+        binding.fullSizeCardImage.visibility = View.VISIBLE
+    }
+
+    private fun hideFullSizeCard() {
+        binding.fullSizeCardImage.visibility = View.GONE
+    }
+
+    private fun playSelectedCard(row: String) {
+        selectedCard?.let { card ->
+            if (gameEngine.playCard(card, isPlayer = true, row)) {
+                hideFullSizeCard() // Ocultar la carta al jugarla
+                updateUI()
+                resetRowHighlights()
+                selectedCard = null
+                playerHandAdapter.clearSelection()
+
+                Handler(Looper.getMainLooper()).postDelayed({
+                    playAITurn()
+                }, 1000)
+            }
+        }
+    }
+
 
 
 

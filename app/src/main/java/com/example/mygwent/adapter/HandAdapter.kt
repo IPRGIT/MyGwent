@@ -44,7 +44,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
 
             // Reducir tamaño de las cartas a la mitad (9% del ancho de pantalla)
             val displayMetrics = parent.context.resources.displayMetrics
-            val cardWidth = (displayMetrics.widthPixels * 0.15f).toInt()
+            val cardWidth = (displayMetrics.widthPixels * 0.07f).toInt()
             val cardHeight = (cardWidth * 1f).toInt()
 
             root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
