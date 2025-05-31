@@ -71,10 +71,21 @@
                     android:gravity="center"
                     android:textColor="@android:color/white"
                     android:textSize="12sp"
-                    app:layout_constraintBottom_toBottomOf="@id/cardImage"
-                    app:layout_constraintEnd_toEndOf="@id/cardImage"
+                    app:layout_constraintTop_toTopOf="@id/cardImage"
+                    app:layout_constraintStart_toStartOf="@id/cardImage"
                     android:layout_margin="4dp"
                     tools:text="5"/>
+
+
+                <ImageView
+                    android:id="@+id/cardSpecialIcon"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_margin="4dp"
+                    android:visibility="gone"
+                    app:layout_constraintBottom_toBottomOf="@id/cardImage"
+                    app:layout_constraintStart_toStartOf="@id/cardImage"
+                    tools:src="@drawable/card_reachtypeplaceholder"/>
 
                 <ImageView
                     android:id="@+id/cardReachIcon"
