@@ -4,7 +4,10 @@ import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.LayoutInflater
 import android.view.View
+import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -368,36 +371,77 @@ class GameActivity : AppCompatActivity() {
             )
         }
 
-    private fun showFullSizeCard(card: Card) {
-        Glide.with(this)
-            .load(card.art)
-            .placeholder(R.drawable.card_placeholder)
-            .error(R.drawable.card_error)
-            .into(binding.fullSizeCardImage)
 
-        binding.fullSizeCardImage.visibility = View.VISIBLE
-    }
 
     private fun hideFullSizeCard() {
         binding.fullSizeCardImage.visibility = View.GONE
     }
 
-    private fun playSelectedCard(row: String) {
-        selectedCard?.let { card ->
-            if (gameEngine.playCard(card, isPlayer = true, row)) {
-                hideFullSizeCard() // Ocultar la carta al jugarla
-                updateUI()
-                resetRowHighlights()
-                selectedCard = null
-                playerHandAdapter.clearSelection()
 
-                Handler(Looper.getMainLooper()).postDelayed({
-                    playAITurn()
-                }, 1000)
+        private fun showFullSizeCard(card: Card) {
+            binding.fullSizeCardImage.visibility = View.VISIBLE
+
+            // Usar un CardView para mostrar todos los detalles
+            val cardView = LayoutInflater.from(this).inflate(R.layout.item_card, binding.fullsizeCard, false)
+
+            // Configurar los elementos de la carta
+            cardView.findViewById<TextView>(R.id.cardName).text = card.name
+            cardView.findViewById<TextView>(R.id.cardFaction).text = card.faction?.replaceFirstChar { it.uppercase() }
+            cardView.findViewById<TextView>(R.id.cardStrength).text = card.power?.toString() ?: ""
+            cardView.findViewById<TextView>(R.id.cardStrength).visibility = if (card.power != null) View.VISIBLE else View.GONE
+
+            // Configurar borde dorado si es carta dorada
+            cardView.findViewById<ImageView>(R.id.cardBorder).visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+
+            // Configurar ícono de alcance
+            if (card.type == "Unit" && card.attributes.reach != null) {
+                val reachIcon = cardView.findViewById<ImageView>(R.id.cardReachIcon)
+                val reachIconRes = when (card.attributes.reach) {
+                    0 -> R.drawable.card_reach0
+                    1 -> R.drawable.card_reach1
+                    2 -> R.drawable.card_reach2
+                    else -> null
+                }
+                if (reachIconRes != null) {
+                    reachIcon.setImageResource(reachIconRes)
+                    reachIcon.visibility = View.VISIBLE
+                } else {
+                    reachIcon.visibility = View.GONE
+                }
+            }
+
+            // Cargar imagen de la carta
+            Glide.with(this)
+                .load(card.art)
+                .into(cardView.findViewById(R.id.cardImage))
+
+            // Limpiar el contenedor y añadir la nueva vista
+            binding.fullsizeCard.removeAllViews()
+            binding.fullsizeCard.addView(cardView)
+        }
+
+        private fun playSelectedCard(row: String) {
+            selectedCard?.let { card ->
+                if (gameEngine.playCard(card, isPlayer = true, row)) {
+                    // Actualizar UI
+                    updateUI()
+
+                    // Ocultar carta de tamaño completo
+                    binding.fullsizeCard.visibility = View.GONE
+                    binding.fullsizeCard.removeAllViews()
+
+                    // Resetear selección
+                    resetRowHighlights()
+                    selectedCard = null
+                    playerHandAdapter.clearSelection()
+
+                    // Turno de la IA después de un breve retraso
+                    Handler(Looper.getMainLooper()).postDelayed({
+                        playAITurn()
+                    }, 1000)
+                }
             }
         }
-    }
-
 
 
 

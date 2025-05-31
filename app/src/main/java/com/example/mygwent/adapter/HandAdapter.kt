@@ -22,17 +22,9 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
     private var selectedCard: Card? = null
     private var highlightedRows: List<String> = emptyList()
 
-    fun getSelectedCard(): Card? = selectedCard
-    fun clearSelection() {
-        selectedCard = null
-        notifyDataSetChanged()
-    }
 
 
-    fun setHighlightedRows(rows: List<String>) {
-        highlightedRows = rows
-        notifyDataSetChanged()
-    }
+
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val binding = ItemCardBinding.inflate(
@@ -131,6 +123,8 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         }
     }
 
+
+
     object CardSizeHelper {
         fun calculateCardSize(context: Context, isHand: Boolean): Pair<Int, Int> {
             val displayMetrics = context.resources.displayMetrics
@@ -161,6 +155,19 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             }
         }
 
+
+        fun getSelectedCard(): Card? = selectedCard
+        fun clearSelection() {
+            selectedCard = null
+            notifyDataSetChanged()
+        }
+
+        fun setHighlightedRows(rows: List<String>) {
+            highlightedRows = rows
+            notifyDataSetChanged()
+        }
+
+
         inner class CardViewHolder(private val binding: ItemCardBinding) :
             RecyclerView.ViewHolder(binding.root) {
 
@@ -168,16 +175,32 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                 // Configurar elementos de la carta
                 binding.cardName.text = card.name
                 binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+                binding.cardStrength.text = card.power?.toString() ?: ""
+                binding.cardStrength.visibility = if (card.power != null) View.VISIBLE else View.GONE
+                binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+
+                // Configurar ícono de alcance
+                if (card.type == "Unit" && card.attributes.reach != null) {
+                    val reachIconRes = when (card.attributes.reach) {
+                        0 -> R.drawable.card_reach0
+                        1 -> R.drawable.card_reach1
+                        2 -> R.drawable.card_reach2
+                        else -> null
+                    }
+                    if (reachIconRes != null) {
+                        binding.cardReachIcon.setImageResource(reachIconRes)
+                        binding.cardReachIcon.visibility = View.VISIBLE
+                    } else {
+                        binding.cardReachIcon.visibility = View.GONE
+                    }
+                } else {
+                    binding.cardReachIcon.visibility = View.GONE
+                }
 
                 // Configurar imagen con Glide
                 Glide.with(binding.root)
                     .load(card.art)
-                    .transform(
-                        MultiTransformation(
-                            CenterCrop(),
-                            RoundedCorners(16)
-                        )
-                    )
+                    .transform(MultiTransformation(CenterCrop(), RoundedCorners(16)))
                     .placeholder(R.drawable.card_placeholder)
                     .error(R.drawable.card_error)
                     .into(binding.cardImage)
@@ -185,29 +208,13 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                 // Resaltar si está seleccionada
                 if (isSelected) {
                     binding.root.alpha = 1.0f
-                    binding.cardBorder.visibility = View.VISIBLE
+                    binding.root.setBackgroundResource(R.drawable.border_gold)
                 } else {
                     binding.root.alpha = 0.7f
-                    binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+                    binding.root.background = null
                 }
             }
         }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
