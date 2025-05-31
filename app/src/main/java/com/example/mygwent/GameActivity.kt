@@ -10,6 +10,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.viewModels
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -95,6 +96,11 @@ class GameActivity : AppCompatActivity() {
     private fun updateUI() {
         updateGemViews()
 
+        // Actualizar contadores de mazo
+        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
+        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
+
+
         // Actualizar la mano del jugador
         playerHandAdapter.submitList(gameEngine.gameState.player.hand.toList())
 
@@ -106,12 +112,23 @@ class GameActivity : AppCompatActivity() {
         aiRangedAdapter.submitList(gameEngine.gameState.ai.board["ranged"] ?: emptyList())
         aiSiegeAdapter.submitList(gameEngine.gameState.ai.board["siege"] ?: emptyList())
 
+        /*
         // Actualizar puntuaciones y contadores
         binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
         binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
         binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
         binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
+
+         */
+
+
+        // Actualizar puntuaciones
+        binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
+        binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
     }
+
+
+
 
     private fun setDeckImages(playerFaction: String, aiFaction: String) {
         val playerDeckRes = when (playerFaction.lowercase()) {
@@ -156,13 +173,20 @@ class GameActivity : AppCompatActivity() {
             val playerCards = allCards.filter { it.faction.equals(playerFaction, ignoreCase = true) }
             val aiCards = allCards.filter { it.faction.equals(aiFaction, ignoreCase = true) }
 
-            // Crear mazos con hasta 47 cartas cada uno
-            playerDeck = List(47.coerceAtMost(playerCards.size)) {
-                playerCards.random().copy()
+            // Crear mazos con exactamente 47 cartas cada uno
+            playerDeck = if (playerCards.size >= 47) {
+                playerCards.shuffled().take(47)
+            } else {
+                // Si no hay suficientes cartas, duplicamos algunas aleatoriamente
+                val needed = 47 - playerCards.size
+                playerCards + (1..needed).map { playerCards.random().copy() }
             }
 
-            aiDeck = List(47.coerceAtMost(aiCards.size)) {
-                aiCards.random().copy()
+            aiDeck = if (aiCards.size >= 47) {
+                aiCards.shuffled().take(47)
+            } else {
+                val needed = 47 - aiCards.size
+                aiCards + (1..needed).map { aiCards.random().copy() }
             }
         } while (playerDeck.size < 47 || aiDeck.size < 47)
 
@@ -269,26 +293,68 @@ class GameActivity : AppCompatActivity() {
         }
 
         // Configurar botón de pasar
-        binding.btnPass.apply {
-            text = "PASAR"
-            setOnClickListener {
-                gameEngine.pass(isPlayer = true)
-                updateUI()
-                resetRowHighlights()
-                selectedCard = null
-                playerHandAdapter.clearSelection()
+        binding.btnPass.setOnClickListener {
+            // Mostrar primera banda informativa
+            showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
+                // Mostrar segunda banda informativa después de la primera
+                showRoundInfoBanner("Turno del oponente", R.drawable.aiturnasset) {
+                    // Lógica después de mostrar ambas bandas
+                    gameEngine.pass(isPlayer = true)
+                    updateUI()
 
-                // Turno de la IA
-                Handler(Looper.getMainLooper()).postDelayed({
-                    playAITurn()
-                }, 1000)
+                    // Actualizar gemas
+                    updateGemViews()
+
+                    // Verificar si el juego ha terminado
+                    if (gameEngine.gameState.isGameOver()) {
+                        showGameOver()
+                    } else {
+                        // Turno de la IA después de un breve retraso
+                        Handler(Looper.getMainLooper()).postDelayed({
+                            playAITurn()
+                        }, 1000)
+                    }
+                }
             }
         }
     }
 
 
 
+    private fun showRoundInfoBanner(message: String, iconRes: Int, duration: Long = 2000, callback: (() -> Unit)? = null) {
+        val bannerView = LayoutInflater.from(this).inflate(R.layout.round_info_banner, binding.root, false)
+
+        bannerView.findViewById<TextView>(R.id.bannerText).text = message
+        bannerView.findViewById<ImageView>(R.id.bannerIcon).setImageResource(iconRes)
+
+        binding.root.addView(bannerView)
+
+        Handler(Looper.getMainLooper()).postDelayed({
+            binding.root.removeView(bannerView)
+            callback?.invoke()
+        }, duration)
+    }
+
+
+
         private fun playAITurn() {
+
+            if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
+                // Mostrar bandas informativas cuando la IA pasa
+                showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
+                    showRoundInfoBanner("Tu turno", R.drawable.playerturnasset) {
+                        gameEngine.pass(isPlayer = false)
+                        updateUI()
+                        updateGemViews()
+
+                        if (gameEngine.gameState.isGameOver()) {
+                            showGameOver()
+                        }
+                    }
+                }
+                return
+            }
+
             if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
                 gameEngine.pass(isPlayer = false)
                 checkRoundEnd()
@@ -318,6 +384,32 @@ class GameActivity : AppCompatActivity() {
                 }, 1000)
             }
         }
+
+
+
+    private fun showGameOver() {
+        val playerScore = gameEngine.calculatePlayerScore()
+        val aiScore = gameEngine.calculateAIScore()
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Partida terminada")
+            .setMessage("Puntuación final:\nJugador: $playerScore\nIA: $aiScore")
+            .setPositiveButton("Jugar de nuevo") { _, _ ->
+                lifecycleScope.launch {
+                    val allCards = viewModel.allCards.value
+                    if (allCards.isNotEmpty()) {
+                        startNewGame(allCards)
+                    }
+                }
+            }
+            .setNegativeButton("Menú principal") { _, _ ->
+                finish()
+            }
+            .setCancelable(false)
+            .create()
+
+        dialog.show()
+    }
 
         private fun checkRoundEnd() {
             if (gameEngine.gameState.player.passed && gameEngine.gameState.ai.passed) {
@@ -349,27 +441,29 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
-        private fun updateGemViews() {
-            // Actualizar gemas del jugador
-            binding.playerGem1Image.setImageResource(
-                if (gameEngine.gameState.playerGems >= 1) R.drawable.icon_gem_on
-                else R.drawable.icon_gem_off
-            )
-            binding.playerGem2Image.setImageResource(
-                if (gameEngine.gameState.playerGems >= 2) R.drawable.icon_gem_on
-                else R.drawable.icon_gem_off
-            )
 
-            // Actualizar gemas de la IA
-            binding.aiGem1Image.setImageResource(
-                if (gameEngine.gameState.aiGems >= 1) R.drawable.icon_gem_on
-                else R.drawable.icon_gem_off
-            )
-            binding.aiGem2Image.setImageResource(
-                if (gameEngine.gameState.aiGems >= 2) R.drawable.icon_gem_on
-                else R.drawable.icon_gem_off
-            )
-        }
+    private fun updateGemViews() {
+        // Actualizar gemas del jugador
+        binding.playerGem1Image.setImageResource(
+            if (gameEngine.gameState.playerGems >= 1) R.drawable.icon_gem_on
+            else R.drawable.icon_gem_off
+        )
+        binding.playerGem2Image.setImageResource(
+            if (gameEngine.gameState.playerGems >= 2) R.drawable.icon_gem_on
+            else R.drawable.icon_gem_off
+        )
+
+        // Actualizar gemas de la IA
+        binding.aiGem1Image.setImageResource(
+            if (gameEngine.gameState.aiGems >= 1) R.drawable.icon_gem_on
+            else R.drawable.icon_gem_off
+        )
+        binding.aiGem2Image.setImageResource(
+            if (gameEngine.gameState.aiGems >= 2) R.drawable.icon_gem_on
+            else R.drawable.icon_gem_off
+        )
+    }
+
 
 
 
