@@ -4,7 +4,6 @@ import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.FrameLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -20,11 +19,7 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
     ListAdapter<Card, HandAdapter.CardViewHolder>(CardDiffCallback()) {
 
     private var selectedCard: Card? = null
-    private var highlightedRows: List<String> = emptyList()
-
-
-
-
+    private var selectedPosition: Int = -1
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val binding = ItemCardBinding.inflate(
@@ -33,18 +28,85 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             false
         ).apply {
             root.setBackgroundResource(android.R.color.transparent)
-
-            // Reducir tamaño de las cartas a la mitad (9% del ancho de pantalla)
-            val displayMetrics = parent.context.resources.displayMetrics
-            val cardWidth = (displayMetrics.widthPixels * 0.07f).toInt()
-            val cardHeight = (cardWidth * 1f).toInt()
-
+            val (cardWidth, cardHeight) = CardSizeHelper.calculateCardSize(parent.context, isHand = true)
             root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
         }
         return CardViewHolder(binding)
     }
 
+    override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
+        val card = getItem(position)
+        val isSelected = selectedPosition == position
+        holder.bind(card, isSelected)
 
+        holder.itemView.setOnClickListener {
+            val previousSelected = selectedPosition
+            selectedPosition = if (selectedPosition == position) -1 else position
+            selectedCard = if (selectedPosition == -1) null else card
+
+            // Notificar cambios para actualizar UI
+            if (previousSelected != -1) notifyItemChanged(previousSelected)
+            if (selectedPosition != -1) notifyItemChanged(selectedPosition)
+
+            onClick(card)
+        }
+    }
+
+    fun getSelectedCard(): Card? = selectedCard
+
+    fun clearSelection() {
+        val previousSelected = selectedPosition
+        selectedPosition = -1
+        selectedCard = null
+        if (previousSelected != -1) notifyItemChanged(previousSelected)
+    }
+
+
+
+    inner class CardViewHolder(private val binding: ItemCardBinding) :
+        RecyclerView.ViewHolder(binding.root) {
+
+        fun bind(card: Card, isSelected: Boolean) {
+            val (cardWidth, cardHeight) = CardSizeHelper.calculateCardSize(
+                binding.root.context,
+                isHand = !isSelected
+            )
+            binding.root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
+
+            binding.cardName.text = card.name
+            binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+            binding.cardStrength.text = card.power?.toString() ?: ""
+            binding.cardStrength.visibility = if (card.power != null) View.VISIBLE else View.GONE
+            binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+
+            if (card.type == "Unit" && card.attributes.reach != null) {
+                val reachIconRes = when (card.attributes.reach) {
+                    0 -> R.drawable.card_reach0
+                    1 -> R.drawable.card_reach1
+                    2 -> R.drawable.card_reach2
+                    else -> null
+                }
+                if (reachIconRes != null) {
+                    binding.cardReachIcon.setImageResource(reachIconRes)
+                    binding.cardReachIcon.visibility = View.VISIBLE
+                } else {
+                    binding.cardReachIcon.visibility = View.GONE
+                }
+            } else {
+                binding.cardReachIcon.visibility = View.GONE
+            }
+
+            Glide.with(binding.root)
+                .load(card.art)
+                .transform(MultiTransformation(CenterCrop(), RoundedCorners(16)))
+                .placeholder(R.drawable.card_placeholder)
+                .error(R.drawable.card_error)
+                .into(binding.cardImage)
+
+            binding.root.alpha = if (isSelected) 1.0f else 0.7f
+            binding.root.setBackgroundResource(if (isSelected) R.drawable.border_gold else android.R.color.transparent)
+        }
+    }
 
     class CardDiffCallback : DiffUtil.ItemCallback<Card>() {
         override fun areItemsTheSame(oldItem: Card, newItem: Card): Boolean {
@@ -56,7 +118,6 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
         }
     }
 
-    // Clase para mostrar cartas en el tablero (BoardRowAdapter)
     class BoardRowAdapter : ListAdapter<Card, BoardRowAdapter.CardViewHolder>(CardDiffCallback()) {
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
             val binding = ItemCardBinding.inflate(
@@ -65,10 +126,8 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                 false
             ).apply {
                 root.setBackgroundResource(android.R.color.transparent)
-                root.layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
+                val (cardWidth, cardHeight) = CardSizeHelper.calculateCardSize(parent.context, isHand = false)
+                root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
             }
             return CardViewHolder(binding)
         }
@@ -82,104 +141,19 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
             RecyclerView.ViewHolder(binding.root) {
 
             fun bind(card: Card) {
-                // Calcular tamaño para el tablero
                 val (cardWidth, cardHeight) = CardSizeHelper.calculateCardSize(
                     binding.root.context,
                     isHand = false
                 )
-
-                // Configurar layout
                 binding.root.layoutParams = ViewGroup.LayoutParams(cardWidth, cardHeight)
                 binding.root.requestLayout()
 
-                // Configurar elementos de la carta
-                binding.cardName.text = card.name
-                binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
-
-                Glide.with(binding.root)
-                    .load(card.art)
-                    .override(cardWidth, cardHeight)
-                    .transform(
-                        MultiTransformation(
-                            CenterCrop(),
-                            RoundedCorners(16)
-                        )
-                    )
-                    .placeholder(R.drawable.card_placeholder)
-                    .error(R.drawable.card_error)
-                    .into(binding.cardImage)
-
-                binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
-                binding.cardBorder.layoutParams = FrameLayout.LayoutParams(cardWidth, cardHeight)
-
-                card.power?.let {
-                    binding.cardStrength.text = it.toString()
-                    binding.cardStrength.visibility = View.VISIBLE
-                    binding.cardStrength.textSize = cardWidth * 0.1f
-                } ?: run {
-                    binding.cardStrength.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-
-
-    object CardSizeHelper {
-        fun calculateCardSize(context: Context, isHand: Boolean): Pair<Int, Int> {
-            val displayMetrics = context.resources.displayMetrics
-            return if (isHand) {
-                // Tamaño para la mano (18% del ancho de pantalla)
-                val width = (displayMetrics.widthPixels * 0.18f).toInt()
-                val height = (width * 1.4f).toInt()
-                width to height
-            } else {
-                // Tamaño para el tablero (15% del ancho de pantalla)
-                val width = (displayMetrics.widthPixels * 0.15f).toInt()
-                val height = (width * 1.4f).toInt()
-                width to height
-            }
-        }
-    }
-
-
-
-        override fun onBindViewHolder(holder: CardViewHolder, position: Int) {
-            val card = getItem(position)
-            holder.bind(card, card == selectedCard)
-
-            holder.itemView.setOnClickListener {
-                selectedCard = card
-                notifyDataSetChanged()
-                onClick(card)
-            }
-        }
-
-
-        fun getSelectedCard(): Card? = selectedCard
-        fun clearSelection() {
-            selectedCard = null
-            notifyDataSetChanged()
-        }
-
-        fun setHighlightedRows(rows: List<String>) {
-            highlightedRows = rows
-            notifyDataSetChanged()
-        }
-
-
-        inner class CardViewHolder(private val binding: ItemCardBinding) :
-            RecyclerView.ViewHolder(binding.root) {
-
-            fun bind(card: Card, isSelected: Boolean) {
-                // Configurar elementos de la carta
                 binding.cardName.text = card.name
                 binding.cardFaction.text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
                 binding.cardStrength.text = card.power?.toString() ?: ""
                 binding.cardStrength.visibility = if (card.power != null) View.VISIBLE else View.GONE
                 binding.cardBorder.visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
 
-                // Configurar ícono de alcance
                 if (card.type == "Unit" && card.attributes.reach != null) {
                     val reachIconRes = when (card.attributes.reach) {
                         0 -> R.drawable.card_reach0
@@ -197,24 +171,33 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
                     binding.cardReachIcon.visibility = View.GONE
                 }
 
-                // Configurar imagen con Glide
                 Glide.with(binding.root)
                     .load(card.art)
+                    .override(cardWidth, cardHeight)
                     .transform(MultiTransformation(CenterCrop(), RoundedCorners(16)))
                     .placeholder(R.drawable.card_placeholder)
                     .error(R.drawable.card_error)
                     .into(binding.cardImage)
-
-                // Resaltar si está seleccionada
-                if (isSelected) {
-                    binding.root.alpha = 1.0f
-                    binding.root.setBackgroundResource(R.drawable.border_gold)
-                } else {
-                    binding.root.alpha = 0.7f
-                    binding.root.background = null
-                }
             }
         }
+    }
+
+    object CardSizeHelper {
+        fun calculateCardSize(context: Context, isHand: Boolean): Pair<Int, Int> {
+            val displayMetrics = context.resources.displayMetrics
+            return if (isHand) {
+                val width = (displayMetrics.widthPixels * 0.12f).toInt()
+                val height = (width * 1.4f).toInt()
+                width to height
+            } else {
+                val width = (displayMetrics.widthPixels * 0.15f).toInt()
+                val height = (width * 1.4f).toInt()
+                width to height
+            }
+        }
+    }
+
+
 
 
 

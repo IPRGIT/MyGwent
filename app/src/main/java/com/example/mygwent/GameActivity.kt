@@ -1,11 +1,12 @@
 package com.example.mygwent
 
-import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +22,8 @@ import com.example.mygwent.databinding.ActivityGameBinding
 import com.example.mygwent.game.GameEngine
 import kotlinx.coroutines.launch
 
+
+
 class GameActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityGameBinding
@@ -34,20 +37,19 @@ class GameActivity : AppCompatActivity() {
     private lateinit var aiRangedAdapter: HandAdapter.BoardRowAdapter
     private lateinit var aiSiegeAdapter: HandAdapter.BoardRowAdapter
 
-    // Variables para manejar la carta seleccionada y filas válidas
     private var selectedCard: Card? = null
     private var selectedValidRows: List<String> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-
         super.onCreate(savedInstanceState)
         binding = ActivityGameBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        gameEngine = GameEngine(this)
 
+        gameEngine = GameEngine(this)
         setupAdapters()
         setupGemViews()
+        setupBoardAdapters()
 
         lifecycleScope.launch {
             viewModel.allCards.collect { cards ->
@@ -59,25 +61,20 @@ class GameActivity : AppCompatActivity() {
             }
         }
 
-        // En el onCreate de GameActivity
         binding.fullsizeCard.setOnClickListener {
             hideFullSizeCard()
             selectedCard = null
             playerHandAdapter.clearSelection()
             resetRowHighlights()
         }
-
     }
 
     private fun setupGemViews() {
         updateGemViews()
     }
 
-
-
     private fun highlightRows(rows: List<String>) {
         resetRowHighlights()
-
         rows.forEach { row ->
             when (row) {
                 "melee" -> binding.playerMeleeRow.setBackgroundResource(R.color.gold_highlight)
@@ -95,40 +92,18 @@ class GameActivity : AppCompatActivity() {
 
     private fun updateUI() {
         updateGemViews()
-
-        // Actualizar contadores de mazo
         binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
         binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
-
-
-        // Actualizar la mano del jugador
-        playerHandAdapter.submitList(gameEngine.gameState.player.hand.toList())
-
-        // Actualizar las filas del tablero
-        playerMeleeAdapter.submitList(gameEngine.gameState.player.board["melee"] ?: emptyList())
-        playerRangedAdapter.submitList(gameEngine.gameState.player.board["ranged"] ?: emptyList())
-        playerSiegeAdapter.submitList(gameEngine.gameState.player.board["siege"] ?: emptyList())
-        aiMeleeAdapter.submitList(gameEngine.gameState.ai.board["melee"] ?: emptyList())
-        aiRangedAdapter.submitList(gameEngine.gameState.ai.board["ranged"] ?: emptyList())
-        aiSiegeAdapter.submitList(gameEngine.gameState.ai.board["siege"] ?: emptyList())
-
-        /*
-        // Actualizar puntuaciones y contadores
-        binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
-        binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
-        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
-        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
-
-         */
-
-
-        // Actualizar puntuaciones
+        playerHandAdapter.submitList(gameEngine.gameState.player.getHandSnapshot())
+        playerMeleeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("melee"))
+        playerRangedAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("ranged"))
+        playerSiegeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("siege"))
+        aiMeleeAdapter.submitList(gameEngine.gameState.ai.getBoardSnapshot("melee"))
+        aiRangedAdapter.submitList(gameEngine.gameState.ai.getBoardSnapshot("ranged"))
+        aiSiegeAdapter.submitList(gameEngine.gameState.ai.getBoardSnapshot("siege"))
         binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
         binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
     }
-
-
-
 
     private fun setDeckImages(playerFaction: String, aiFaction: String) {
         val playerDeckRes = when (playerFaction.lowercase()) {
@@ -160,80 +135,150 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
+        // Filtrar cartas válidas (excluir cartas con power 0)
+        val validCards = allCards.filter { card ->
+            card != null && (card.power == null || card.power!! > 0 || card.type != "Unit")
+        }
+
+        if (validCards.isEmpty()) {
+            Toast.makeText(this, "No valid cards available", Toast.LENGTH_LONG).show()
+            finish()
+            return
+        }
+
         val factions = listOf("monsters", "nilfgaard", "northernrealms", "scoiatael", "skellige")
         var playerFaction: String
         var aiFaction: String
         var playerDeck: List<Card>
         var aiDeck: List<Card>
 
+        var attempts = 0
         do {
             playerFaction = factions.random()
             aiFaction = factions.random()
 
-            val playerCards = allCards.filter { it.faction.equals(playerFaction, ignoreCase = true) }
-            val aiCards = allCards.filter { it.faction.equals(aiFaction, ignoreCase = true) }
+            val playerCards = validCards.filter { it.faction.equals(playerFaction, ignoreCase = true) }
+            val aiCards = validCards.filter { it.faction.equals(aiFaction, ignoreCase = true) }
 
-            // Crear mazos con exactamente 47 cartas cada uno
-            playerDeck = if (playerCards.size >= 47) {
-                playerCards.shuffled().take(47)
+            // Crear mazos asegurando que no estén vacíos
+            playerDeck = if (playerCards.isNotEmpty()) {
+                if (playerCards.size >= 47) {
+                    playerCards.shuffled().take(47)
+                } else {
+                    // Si no hay suficientes cartas, duplicar las existentes de forma segura
+                    val needed = 47 - playerCards.size
+                    val repeatedCards = mutableListOf<Card>()
+                    var safeAttempts = 0
+                    while (repeatedCards.size < needed && safeAttempts < 100) {
+                        val randomCard = playerCards.randomOrNull()
+                        if (randomCard != null) {
+                            // Verificar que la carta no sea nula antes de duplicar
+                            repeatedCards.add(randomCard.copy())
+                        }
+                        safeAttempts++
+                        // Si después de muchos intentos no podemos completar, usar cualquier carta válida
+                        if (safeAttempts >= 50 && repeatedCards.size < needed) {
+                            validCards.randomOrNull()?.let { repeatedCards.add(it.copy()) }
+                        }
+                    }
+                    playerCards + repeatedCards
+                }
             } else {
-                // Si no hay suficientes cartas, duplicamos algunas aleatoriamente
-                val needed = 47 - playerCards.size
-                playerCards + (1..needed).map { playerCards.random().copy() }
+                // Si no hay cartas de esta facción, usar cualquier carta válida
+                validCards.shuffled().take(47)
             }
 
-            aiDeck = if (aiCards.size >= 47) {
-                aiCards.shuffled().take(47)
+            aiDeck = if (aiCards.isNotEmpty()) {
+                if (aiCards.size >= 47) {
+                    aiCards.shuffled().take(47)
+                } else {
+                    val needed = 47 - aiCards.size
+                    val repeatedCards = mutableListOf<Card>()
+                    var safeAttempts = 0
+                    while (repeatedCards.size < needed && safeAttempts < 100) {
+                        val randomCard = aiCards.randomOrNull()
+                        if (randomCard != null) {
+                            repeatedCards.add(randomCard.copy())
+                        }
+                        safeAttempts++
+                        if (safeAttempts >= 50 && repeatedCards.size < needed) {
+                            validCards.randomOrNull()?.let { repeatedCards.add(it.copy()) }
+                        }
+                    }
+                    aiCards + repeatedCards
+                }
             } else {
-                val needed = 47 - aiCards.size
-                aiCards + (1..needed).map { aiCards.random().copy() }
+                validCards.shuffled().take(47)
+            }
+
+            attempts++
+            if (attempts > 10) {
+                // Si después de 10 intentos no se pueden crear mazos válidos, usar cualquier carta
+                playerDeck = validCards.shuffled().take(47)
+                aiDeck = validCards.shuffled().take(47)
+                break
             }
         } while (playerDeck.size < 47 || aiDeck.size < 47)
 
-        setDeckImages(playerFaction, aiFaction)
-        gameEngine.startGame(playerDeck, aiDeck)
-        updateUI()
-    }
-
-    private fun highlightRowForCard(card: Card) {
-        resetRowHighlights()
-        val reach = card.attributes.reach ?: -1
-        val rowView = when (reach) {
-            0 -> binding.playerMeleeRow
-            1 -> binding.playerRangedRow
-            2 -> binding.playerSiegeRow
-            else -> null
+        // Verificación final para asegurar que los mazos tengan el tamaño correcto
+        val finalPlayerDeck = if (playerDeck.size < 47) {
+            val needed = 47 - playerDeck.size
+            val additionalCards = validCards.shuffled().take(needed)
+            playerDeck + additionalCards
+        } else {
+            playerDeck
         }
-        rowView?.background?.mutate()?.alpha = 150 // Semi-transparente
+
+        val finalAiDeck = if (aiDeck.size < 47) {
+            val needed = 47 - aiDeck.size
+            val additionalCards = validCards.shuffled().take(needed)
+            aiDeck + additionalCards
+        } else {
+            aiDeck
+        }
+
+        setDeckImages(playerFaction, aiFaction)
+        gameEngine.startGame(finalPlayerDeck, finalAiDeck)
+        updateUI()
     }
 
 
     private fun setupAdapters() {
-        // Inicializar todos los adaptadores primero
         playerHandAdapter = HandAdapter { card ->
             selectedCard = card
             showFullSizeCard(card)
-            // Determinar filas válidas para la carta
-            selectedValidRows = when (card.attributes.reach ?: 0) {
+
+            // Determinar filas válidas basado en el alcance de la carta
+            selectedValidRows = when (card.attributes.reach ?: -1) {
                 0 -> listOf("melee")
                 1 -> listOf("ranged")
                 2 -> listOf("siege")
-                else -> listOf("melee", "ranged", "siege")
+                else -> {
+                    // Para cartas especiales o sin alcance, permitir todas las filas
+                    if (card.isUnitCard()) listOf("melee", "ranged", "siege")
+                    else emptyList() // Cartas especiales no van a filas
+                }
             }
+
+            // Resaltar filas válidas
             highlightRows(selectedValidRows)
 
-
-            // Configurar click listener para el contenedor del juego
-            binding.gameContainer.setOnClickListener {
-                selectedCard = null
-                playerHandAdapter.clearSelection()
-                resetRowHighlights()
-                hideFullSizeCard()
-            }
-
+            Log.d("GameActivity", "Selected card: ${card.name}, valid rows: $selectedValidRows")
         }
 
-        // Inicializar adaptadores para las filas del jugador y la IA
+        binding.playerHandRecyclerView.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
+                stackFromEnd = false
+            }
+            adapter = playerHandAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
+        }
+
+
+        setupRowClickListeners()
+
+
         playerMeleeAdapter = HandAdapter.BoardRowAdapter()
         playerRangedAdapter = HandAdapter.BoardRowAdapter()
         playerSiegeAdapter = HandAdapter.BoardRowAdapter()
@@ -241,75 +286,81 @@ class GameActivity : AppCompatActivity() {
         aiRangedAdapter = HandAdapter.BoardRowAdapter()
         aiSiegeAdapter = HandAdapter.BoardRowAdapter()
 
-        // Configurar RecyclerViews
-        binding.playerHandRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerHandAdapter
-        }
-
-        // Configurar RecyclerViews para las filas del jugador
         binding.playerMeleeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
+                stackFromEnd = true
+            }
             adapter = playerMeleeAdapter
-        }
-        binding.playerRangedRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerRangedAdapter
-        }
-        binding.playerSiegeRow.apply {
-            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
-            adapter = playerSiegeAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
         }
 
-        // Configurar RecyclerViews para las filas de la IA
+        binding.playerRangedRow.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
+                stackFromEnd = true
+            }
+            adapter = playerRangedAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
+        }
+
+        binding.playerSiegeRow.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false).apply {
+                stackFromEnd = true
+            }
+            adapter = playerSiegeAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
+        }
+
         binding.aiMeleeRow.apply {
             layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = aiMeleeAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
         }
+
         binding.aiRangedRow.apply {
             layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = aiRangedAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
         }
+
         binding.aiSiegeRow.apply {
             layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
             adapter = aiSiegeAdapter
+            setHasFixedSize(true)
+            itemAnimator = null
         }
 
-        // Configurar listeners para las filas
         binding.playerMeleeRow.setOnClickListener {
             if (selectedValidRows.contains("melee") && selectedCard != null) {
                 playSelectedCard("melee")
             }
         }
+
         binding.playerRangedRow.setOnClickListener {
             if (selectedValidRows.contains("ranged") && selectedCard != null) {
                 playSelectedCard("ranged")
             }
         }
+
         binding.playerSiegeRow.setOnClickListener {
             if (selectedValidRows.contains("siege") && selectedCard != null) {
                 playSelectedCard("siege")
             }
         }
 
-        // Configurar botón de pasar
         binding.btnPass.setOnClickListener {
-            // Mostrar primera banda informativa
             showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
-                // Mostrar segunda banda informativa después de la primera
                 showRoundInfoBanner("Turno del oponente", R.drawable.aiturnasset) {
-                    // Lógica después de mostrar ambas bandas
                     gameEngine.pass(isPlayer = true)
                     updateUI()
-
-                    // Actualizar gemas
                     updateGemViews()
-
-                    // Verificar si el juego ha terminado
                     if (gameEngine.gameState.isGameOver()) {
                         showGameOver()
                     } else {
-                        // Turno de la IA después de un breve retraso
                         Handler(Looper.getMainLooper()).postDelayed({
                             playAITurn()
                         }, 1000)
@@ -317,80 +368,58 @@ class GameActivity : AppCompatActivity() {
                 }
             }
         }
-    }
 
+    }
 
 
     private fun showRoundInfoBanner(message: String, iconRes: Int, duration: Long = 2000, callback: (() -> Unit)? = null) {
         val bannerView = LayoutInflater.from(this).inflate(R.layout.round_info_banner, binding.root, false)
-
         bannerView.findViewById<TextView>(R.id.bannerText).text = message
         bannerView.findViewById<ImageView>(R.id.bannerIcon).setImageResource(iconRes)
-
         binding.root.addView(bannerView)
-
         Handler(Looper.getMainLooper()).postDelayed({
             binding.root.removeView(bannerView)
             callback?.invoke()
         }, duration)
     }
 
-
-
-        private fun playAITurn() {
-
-            if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
-                // Mostrar bandas informativas cuando la IA pasa
-                showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
-                    showRoundInfoBanner("Tu turno", R.drawable.playerturnasset) {
-                        gameEngine.pass(isPlayer = false)
-                        updateUI()
-                        updateGemViews()
-
-                        if (gameEngine.gameState.isGameOver()) {
-                            showGameOver()
-                        }
+    private fun playAITurn() {
+        if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
+            showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
+                showRoundInfoBanner("Tu turno", R.drawable.playerturnasset) {
+                    gameEngine.pass(isPlayer = false)
+                    updateUI()
+                    updateGemViews()
+                    if (gameEngine.gameState.isGameOver()) {
+                        showGameOver()
                     }
                 }
-                return
             }
-
-            if (gameEngine.gameState.ai.passed || gameEngine.gameState.ai.hand.isEmpty()) {
-                gameEngine.pass(isPlayer = false)
-                checkRoundEnd()
-                return
-            }
-
-            // Seleccionar carta aleatoria de la mano de la IA
-            val aiHand = gameEngine.gameState.ai.hand
-            val randomCard = aiHand.random()
-
-            // Determinar fila válida para la carta
-            val row = when (randomCard.attributes.reach ?: 0) {
-                0 -> "melee"
-                1 -> "ranged"
-                2 -> "siege"
-                else -> listOf("melee", "ranged", "siege").random()
-            }
-
-            if (gameEngine.playCard(randomCard, isPlayer = false, row)) {
-                updateUI()
-
-                // Verificar si el juego no ha terminado
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (!gameEngine.gameState.isGameOver()) {
-                        Toast.makeText(this, "Tu turno", Toast.LENGTH_SHORT).show()
-                    }
-                }, 1000)
-            }
+            return
         }
 
+        val aiHand = gameEngine.gameState.ai.hand
+        val randomCard = aiHand.random()
+        val row = when (randomCard.attributes.reach ?: -1) {
+            0 -> "melee"
+            1 -> "ranged"
+            2 -> "siege"
+            else -> listOf("melee", "ranged", "siege").random()
+        }
 
+        if (gameEngine.playCard(randomCard, isPlayer = false, row)) {
+            updateUI()
+            Handler(Looper.getMainLooper()).postDelayed({
+                if (!gameEngine.gameState.isGameOver()) {
+                    Toast.makeText(this, "Tu turno", Toast.LENGTH_SHORT).show()
+                }
+            }, 1000)
+        }
+    }
 
     private fun showGameOver() {
         val playerScore = gameEngine.calculatePlayerScore()
         val aiScore = gameEngine.calculateAIScore()
-
         val dialog = AlertDialog.Builder(this)
             .setTitle("Partida terminada")
             .setMessage("Puntuación final:\nJugador: $playerScore\nIA: $aiScore")
@@ -407,136 +436,171 @@ class GameActivity : AppCompatActivity() {
             }
             .setCancelable(false)
             .create()
-
         dialog.show()
     }
 
-        private fun checkRoundEnd() {
-            if (gameEngine.gameState.player.passed && gameEngine.gameState.ai.passed) {
-                // Determinar ganador de la ronda
-                val playerScore = gameEngine.calculatePlayerScore()
-                val aiScore = gameEngine.calculateAIScore()
-
-                if (aiScore > playerScore) {
-                    gameEngine.gameState.playerLosesGem()
-                    updateGemViews()
-                    Toast.makeText(this, "La IA gana la ronda", Toast.LENGTH_SHORT).show()
-                } else if (playerScore > aiScore) {
-                    gameEngine.gameState.aiLosesGem()
-                    updateGemViews()
-                    Toast.makeText(this, "Ganas la ronda", Toast.LENGTH_SHORT).show()
-                } else {
-                    // Empate - ambos pierden gema
-                    gameEngine.gameState.playerLosesGem()
-                    gameEngine.gameState.aiLosesGem()
-                    updateGemViews()
-                    Toast.makeText(this, "Empate - Ambos pierden gema", Toast.LENGTH_SHORT).show()
-                }
-
-                // Preparar siguiente ronda si el juego no ha terminado
-                if (!gameEngine.gameState.isGameOver()) {
-                    gameEngine.prepareNextRound()
-                    updateUI()
-                }
-            }
-        }
-
-
     private fun updateGemViews() {
-        // Actualizar gemas del jugador
         binding.playerGem1Image.setImageResource(
-            if (gameEngine.gameState.playerGems >= 1) R.drawable.icon_gem_on
-            else R.drawable.icon_gem_off
+            if (gameEngine.gameState.playerGems >= 1) R.drawable.icon_gem_on else R.drawable.icon_gem_off
         )
         binding.playerGem2Image.setImageResource(
-            if (gameEngine.gameState.playerGems >= 2) R.drawable.icon_gem_on
-            else R.drawable.icon_gem_off
+            if (gameEngine.gameState.playerGems >= 2) R.drawable.icon_gem_on else R.drawable.icon_gem_off
         )
-
-        // Actualizar gemas de la IA
         binding.aiGem1Image.setImageResource(
-            if (gameEngine.gameState.aiGems >= 1) R.drawable.icon_gem_on
-            else R.drawable.icon_gem_off
+            if (gameEngine.gameState.aiGems >= 1) R.drawable.icon_gem_on else R.drawable.icon_gem_off
         )
         binding.aiGem2Image.setImageResource(
-            if (gameEngine.gameState.aiGems >= 2) R.drawable.icon_gem_on
-            else R.drawable.icon_gem_off
+            if (gameEngine.gameState.aiGems >= 2) R.drawable.icon_gem_on else R.drawable.icon_gem_off
         )
     }
-
-
-
 
     private fun hideFullSizeCard() {
         binding.fullSizeCardImage.visibility = View.GONE
+        binding.fullsizeCard.removeAllViews()
     }
 
-
-        private fun showFullSizeCard(card: Card) {
-            binding.fullSizeCardImage.visibility = View.VISIBLE
-
-            // Usar un CardView para mostrar todos los detalles
-            val cardView = LayoutInflater.from(this).inflate(R.layout.item_card, binding.fullsizeCard, false)
-
-            // Configurar los elementos de la carta
-            cardView.findViewById<TextView>(R.id.cardName).text = card.name
-            cardView.findViewById<TextView>(R.id.cardFaction).text = card.faction?.replaceFirstChar { it.uppercase() }
-            cardView.findViewById<TextView>(R.id.cardStrength).text = card.power?.toString() ?: ""
-            cardView.findViewById<TextView>(R.id.cardStrength).visibility = if (card.power != null) View.VISIBLE else View.GONE
-
-            // Configurar borde dorado si es carta dorada
-            cardView.findViewById<ImageView>(R.id.cardBorder).visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
-
-            // Configurar ícono de alcance
-            if (card.type == "Unit" && card.attributes.reach != null) {
-                val reachIcon = cardView.findViewById<ImageView>(R.id.cardReachIcon)
-                val reachIconRes = when (card.attributes.reach) {
-                    0 -> R.drawable.card_reach0
-                    1 -> R.drawable.card_reach1
-                    2 -> R.drawable.card_reach2
-                    else -> null
-                }
-                if (reachIconRes != null) {
-                    reachIcon.setImageResource(reachIconRes)
-                    reachIcon.visibility = View.VISIBLE
-                } else {
-                    reachIcon.visibility = View.GONE
-                }
+    private fun showFullSizeCard(card: Card) {
+        binding.fullSizeCardImage.visibility = View.VISIBLE
+        val cardView = LayoutInflater.from(this).inflate(R.layout.item_card, binding.fullsizeCard, false)
+        val displayMetrics = resources.displayMetrics
+        val width = (displayMetrics.widthPixels * 0.3f).toInt()
+        val height = (width * 1.4f).toInt()
+        cardView.layoutParams = ViewGroup.LayoutParams(width, height)
+        cardView.findViewById<TextView>(R.id.cardName).text = card.name
+        cardView.findViewById<TextView>(R.id.cardFaction).text = card.faction?.replaceFirstChar { it.uppercase() } ?: "Unknown"
+        cardView.findViewById<TextView>(R.id.cardStrength).text = card.power?.toString() ?: ""
+        cardView.findViewById<TextView>(R.id.cardStrength).visibility = if (card.power != null) View.VISIBLE else View.GONE
+        cardView.findViewById<ImageView>(R.id.cardBorder).visibility = if (card.isGoldCard()) View.VISIBLE else View.GONE
+        if (card.type == "Unit" && card.attributes.reach != null) {
+            val reachIcon = cardView.findViewById<ImageView>(R.id.cardReachIcon)
+            val reachIconRes = when (card.attributes.reach) {
+                0 -> R.drawable.card_reach0
+                1 -> R.drawable.card_reach1
+                2 -> R.drawable.card_reach2
+                else -> null
             }
+            if (reachIconRes != null) {
+                reachIcon.setImageResource(reachIconRes)
+                reachIcon.visibility = View.VISIBLE
+            } else {
+                reachIcon.visibility = View.GONE
+            }
+        }
+        Glide.with(this).load(card.art).into(cardView.findViewById(R.id.cardImage))
+        binding.fullsizeCard.removeAllViews()
+        binding.fullsizeCard.addView(cardView)
+    }
 
-            // Cargar imagen de la carta
-            Glide.with(this)
-                .load(card.art)
-                .into(cardView.findViewById(R.id.cardImage))
-
-            // Limpiar el contenedor y añadir la nueva vista
-            binding.fullsizeCard.removeAllViews()
-            binding.fullsizeCard.addView(cardView)
+    private fun setupRowClickListeners() {
+        binding.playerMeleeRow.setOnClickListener {
+            if (selectedCard != null && selectedValidRows.contains("melee")) {
+                playSelectedCard("melee")
+            }
         }
 
-        private fun playSelectedCard(row: String) {
-            selectedCard?.let { card ->
-                if (gameEngine.playCard(card, isPlayer = true, row)) {
-                    // Actualizar UI
-                    updateUI()
+        binding.playerRangedRow.setOnClickListener {
+            if (selectedCard != null && selectedValidRows.contains("ranged")) {
+                playSelectedCard("ranged")
+            }
+        }
 
-                    // Ocultar carta de tamaño completo
-                    binding.fullsizeCard.visibility = View.GONE
-                    binding.fullsizeCard.removeAllViews()
+        binding.playerSiegeRow.setOnClickListener {
+            if (selectedCard != null && selectedValidRows.contains("siege")) {
+                playSelectedCard("siege")
+            }
+        }
+    }
 
-                    // Resetear selección
-                    resetRowHighlights()
-                    selectedCard = null
-                    playerHandAdapter.clearSelection()
+    private fun playSelectedCard(row: String) {
+        Log.d("GameActivity", "Attempting to play card on $row")
+        selectedCard?.let { card ->
+            if (gameEngine.playCard(card, isPlayer = true, row)) {
+                Log.d("GameActivity", "Card played successfully on $row")
 
-                    // Turno de la IA después de un breve retraso
-                    Handler(Looper.getMainLooper()).postDelayed({
+                // Actualizar UI inmediatamente
+                updateGameUI(row)
+
+                // Limpiar selección
+                selectedCard = null
+                playerHandAdapter.clearSelection()
+                resetRowHighlights()
+                hideFullSizeCard()
+
+                // Turno de la IA después de un delay
+                Handler(Looper.getMainLooper()).postDelayed({
+                    if (!gameEngine.gameState.isGameOver()) {
                         playAITurn()
-                    }, 1000)
-                }
+                    }
+                }, 1000)
+            } else {
+                Toast.makeText(this, "No se pudo jugar la carta", Toast.LENGTH_SHORT).show()
+                Log.e("GameActivity", "Failed to play card: ${card.name}")
+            }
+        }
+    }
+
+    private fun updateGameUI(playedRow: String) {
+        // Actualizar mano del jugador
+        playerHandAdapter.submitList(gameEngine.gameState.player.getHandSnapshot())
+
+        // Actualizar solo la fila donde se jugó la carta
+        when (playedRow) {
+            "melee" -> {
+                playerMeleeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("melee"))
+                Log.d("GameActivity", "Updated melee row with ${gameEngine.gameState.player.getBoardSnapshot("melee").size} cards")
+            }
+            "ranged" -> {
+                playerRangedAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("ranged"))
+                Log.d("GameActivity", "Updated ranged row with ${gameEngine.gameState.player.getBoardSnapshot("ranged").size} cards")
+            }
+            "siege" -> {
+                playerSiegeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("siege"))
+                Log.d("GameActivity", "Updated siege row with ${gameEngine.gameState.player.getBoardSnapshot("siege").size} cards")
             }
         }
 
+        // Actualizar puntuaciones
+        binding.playerScore.text = "Jugador: ${gameEngine.calculatePlayerScore()}"
+        binding.aiScore.text = "IA: ${gameEngine.calculateAIScore()}"
+
+        // Actualizar contadores de mazo
+        binding.playerDeckCount.text = gameEngine.gameState.player.deck.size.toString()
+        binding.aiDeckCount.text = gameEngine.gameState.ai.deck.size.toString()
+    }
+
+    // Modificar el onClick del HandAdapter en setupAdapters():
+
+
+    // Asegurar que los adapters de filas se actualicen correctamente
+    private fun setupBoardAdapters() {
+        playerMeleeAdapter = HandAdapter.BoardRowAdapter()
+        playerRangedAdapter = HandAdapter.BoardRowAdapter()
+        playerSiegeAdapter = HandAdapter.BoardRowAdapter()
+
+        // Configurar los RecyclerView de las filas
+        binding.playerMeleeRow.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = playerMeleeAdapter
+            setHasFixedSize(true)
+        }
+
+        binding.playerRangedRow.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = playerRangedAdapter
+            setHasFixedSize(true)
+        }
+
+        binding.playerSiegeRow.apply {
+            layoutManager = LinearLayoutManager(this@GameActivity, LinearLayoutManager.HORIZONTAL, false)
+            adapter = playerSiegeAdapter
+            setHasFixedSize(true)
+        }
+
+        // Actualizar con el estado inicial
+        playerMeleeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("melee"))
+        playerRangedAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("ranged"))
+        playerSiegeAdapter.submitList(gameEngine.gameState.player.getBoardSnapshot("siege"))
+    }
 
 
 

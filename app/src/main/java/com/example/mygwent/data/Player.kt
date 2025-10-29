@@ -13,6 +13,11 @@ data class Player(
     var lives: Int = 2,
     var passed: Boolean = false
 ) {
+
+    // Cambiamos a funciones que devuelvan nuevas listas
+    fun getHandSnapshot(): List<Card> = hand.toList()
+    fun getBoardSnapshot(row: String): List<Card> = board[row]?.toList() ?: emptyList()
+
     fun drawCard(): Card? {
         if (deck.isEmpty()) return null
         val card = deck.removeAt(0)

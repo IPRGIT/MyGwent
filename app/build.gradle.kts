@@ -62,7 +62,8 @@ dependencies {
 
         // Glide
         implementation (libs.glide.v4130)
-        annotationProcessor (libs.compiler.v4130)
+    implementation(libs.androidx.media3.common.ktx)
+    annotationProcessor (libs.compiler.v4130)
 
         // Coroutines
         implementation (libs.kotlinx.coroutines.android.v160)

@@ -14,9 +14,9 @@ import com.bumptech.glide.request.RequestOptions
 import com.example.mygwent.R
 import com.example.mygwent.data.Card
 import com.example.mygwent.databinding.ItemCardBinding
-import kotlin.math.absoluteValue
 
 class CardAdapter : ListAdapter<Card, CardAdapter.CardViewHolder>(CardDiffCallback()) {
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardViewHolder {
         val binding = ItemCardBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return CardViewHolder(binding)
@@ -50,6 +50,7 @@ class CardAdapter : ListAdapter<Card, CardAdapter.CardViewHolder>(CardDiffCallba
                 } else {
                     binding.cardReachIcon.visibility = View.GONE
                 }
+
             } else {
                 binding.cardReachIcon.visibility = View.GONE
             }
