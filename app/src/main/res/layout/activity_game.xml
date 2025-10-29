@@ -234,11 +234,19 @@
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
+
                 <Button
                     android:id="@+id/btnPass"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Pasar"/>
+                    android:text="Pasar"
+                    android:backgroundTint="@color/Primary"
+                    android:textColor="@android:color/white"
+                    android:textSize="14sp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"/>
 
             </LinearLayout>
 
