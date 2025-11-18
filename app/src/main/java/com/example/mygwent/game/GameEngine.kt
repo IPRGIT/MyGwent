@@ -370,15 +370,29 @@ class GameEngine(private val context: Context) {
         return totalScore
     }
 
+    private fun prepareDeckWithoutZeroPower(deck: List<Card>): List<Card> {
+        return deck.filter { card ->
+            // Usar el método hasZeroPower() para filtrar cartas
+            !card.hasZeroPower()
+        }
+    }
+
     fun startGame(playerDeck: List<Card>, aiDeck: List<Card>) {
-        val preparedPlayerDeck = prepareDeckWithReachVariety(playerDeck)
-        val preparedAiDeck = prepareDeckWithReachVariety(aiDeck)
+        // Filtrar cartas con power = 0 antes de preparar los mazos
+        val filteredPlayerDeck = prepareDeckWithoutZeroPower(playerDeck)
+        val filteredAiDeck = prepareDeckWithoutZeroPower(aiDeck)
+
+        val preparedPlayerDeck = prepareDeckWithReachVariety(filteredPlayerDeck)
+        val preparedAiDeck = prepareDeckWithReachVariety(filteredAiDeck)
+
         gameState.player.deck = preparedPlayerDeck.toMutableList().apply { shuffle() }
         gameState.ai.deck = preparedAiDeck.toMutableList().apply { shuffle() }
         dealInitialHands()
         // Limpiar cualquier selección previa
         clearCardSelection()
     }
+
+
 
     private fun prepareDeckWithReachVariety(deck: List<Card>): List<Card> {
         val reach0Cards = deck.filter { it.attributes.reach == 0 }
@@ -411,37 +425,87 @@ class GameEngine(private val context: Context) {
 
     private fun dealInitialHands() {
         val playerHand = mutableListOf<Card>()
+        val aiHand = mutableListOf<Card>()
+
+        // Función auxiliar para dibujar cartas válidas
+        fun drawValidCards(player: Player, count: Int): MutableList<Card> {
+            val drawnCards = mutableListOf<Card>()
+            var attempts = 0
+            val maxAttempts = player.deck.size * 2 // Evitar bucle infinito
+
+            while (drawnCards.size < count && attempts < maxAttempts && player.deck.isNotEmpty()) {
+                val card = player.deck.removeAt(0)
+
+                // Usar el método hasZeroPower() para validar la carta
+                if (!card.hasZeroPower()) {
+                    drawnCards.add(card)
+                } else {
+                    // Descartar automáticamente cartas con power = 0
+                    player.discardPile.add(card)
+                    Log.d("GameEngine", "Descartada carta con power 0: ${card.name}")
+                }
+                attempts++
+            }
+            return drawnCards
+        }
+
+        // Dibujar cartas iniciales asegurando variedad de alcance
         val reachTypes = listOf(0, 1, 2)
+
+        // Para el jugador
         reachTypes.forEach { reach ->
-            val card = gameState.player.deck.firstOrNull { it.attributes.reach == reach }
-            card?.let {
-                playerHand.add(it)
-                gameState.player.deck.remove(it)
+            val cardIndex = gameState.player.deck.indexOfFirst { it.attributes.reach == reach }
+            if (cardIndex != -1) {
+                val card = gameState.player.deck.removeAt(cardIndex)
+                if (card.hasZeroPower()) {
+                    // Descartar si tiene power 0 usando el método
+                    gameState.player.discardPile.add(card)
+                    Log.d("GameEngine", "Descartada carta inicial con power 0 (jugador): ${card.name}")
+                } else {
+                    playerHand.add(card)
+                }
             }
         }
-        while (playerHand.size < 10 && gameState.player.deck.isNotEmpty()) {
-            playerHand.add(gameState.player.deck.removeAt(0))
+
+        // Completar mano del jugador con cartas válidas
+        val remainingPlayerCards = 10 - playerHand.size
+        if (remainingPlayerCards > 0) {
+            playerHand.addAll(drawValidCards(gameState.player, remainingPlayerCards))
         }
         gameState.player.hand.addAll(playerHand)
 
-        val aiHand = mutableListOf<Card>()
+        // Para la IA
         reachTypes.forEach { reach ->
-            val card = gameState.ai.deck.firstOrNull { it.attributes.reach == reach }
-            card?.let {
-                aiHand.add(it)
-                gameState.ai.deck.remove(it)
+            val cardIndex = gameState.ai.deck.indexOfFirst { it.attributes.reach == reach }
+            if (cardIndex != -1) {
+                val card = gameState.ai.deck.removeAt(cardIndex)
+                if (card.hasZeroPower()) {
+                    // Descartar si tiene power 0 usando el método
+                    gameState.ai.discardPile.add(card)
+                    Log.d("GameEngine", "Descartada carta inicial con power 0 (IA): ${card.name}")
+                } else {
+                    aiHand.add(card)
+                }
             }
         }
-        while (aiHand.size < 10 && gameState.ai.deck.isNotEmpty()) {
-            aiHand.add(gameState.ai.deck.removeAt(0))
+
+        // Completar mano de la IA con cartas válidas
+        val remainingAiCards = 10 - aiHand.size
+        if (remainingAiCards > 0) {
+            aiHand.addAll(drawValidCards(gameState.ai, remainingAiCards))
         }
         gameState.ai.hand.addAll(aiHand)
+
+        Log.d("GameEngine", "Mano jugador: ${playerHand.size} cartas, Mano IA: ${aiHand.size} cartas")
+        Log.d("GameEngine", "Descartes jugador: ${gameState.player.discardPile.size}, Descarte IA: ${gameState.ai.discardPile.size}")
     }
 
     private fun prepareNextRound() {
         gameState.currentRound++
         gameState.player.passed = false
         gameState.ai.passed = false
+
+        // Limpiar tableros y mover cartas al cementerio
         gameState.player.board.values.forEach { row ->
             gameState.player.discardPile.addAll(row)
             row.clear()
@@ -450,11 +514,48 @@ class GameEngine(private val context: Context) {
             gameState.ai.discardPile.addAll(row)
             row.clear()
         }
+
+        // Dibujar nuevas cartas asegurando que no tengan power = 0
         repeat(2) {
-            gameState.player.drawCard()
-            gameState.ai.drawCard()
+            drawValidCard(gameState.player)
+            drawValidCard(gameState.ai)
         }
+
         // Limpiar selección al comenzar nueva ronda
         clearCardSelection()
     }
+
+    // Nuevo método para dibujar una carta válida
+    private fun drawValidCard(player: Player) {
+        if (player.deck.isEmpty()) return
+
+        var validCardFound = false
+        var attempts = 0
+        val maxAttempts = player.deck.size
+
+        while (!validCardFound && attempts < maxAttempts && player.deck.isNotEmpty()) {
+            val card = player.deck.removeAt(0)
+
+            // Usar el método hasZeroPower() para validar la carta
+            if (!card.hasZeroPower()) {
+                player.hand.add(card)
+                validCardFound = true
+                Log.d("GameEngine", "Carta válida añadida a la mano: ${card.name}")
+            } else {
+                // Descartar automáticamente cartas con power = 0
+                player.discardPile.add(card)
+                Log.d("GameEngine", "Descartada carta con power 0 durante robo: ${card.name}")
+            }
+            attempts++
+        }
+
+        if (!validCardFound) {
+            Log.w("GameEngine", "No se encontró carta válida después de $attempts intentos")
+        }
+    }
+
+
+
+
+
 }

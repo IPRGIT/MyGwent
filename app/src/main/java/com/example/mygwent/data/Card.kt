@@ -152,7 +152,9 @@ data class Card(
 
 
 
-
+    fun hasZeroPower(): Boolean {
+        return this.isUnitCard() && this.power != null && this.power == 0
+    }
 
 
 }

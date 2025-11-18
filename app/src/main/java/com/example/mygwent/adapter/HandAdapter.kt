@@ -62,7 +62,6 @@ class HandAdapter(private val onClick: (Card) -> Unit) :
     }
 
 
-
     inner class CardViewHolder(private val binding: ItemCardBinding) :
         RecyclerView.ViewHolder(binding.root) {
 
