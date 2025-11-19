@@ -75,7 +75,7 @@ class GameActivity : AppCompatActivity() {
 
         binding.fullsizeCard.setOnClickListener {
             hideFullSizeCard()
-            clearCardSelection() // Usar clearCardSelection en lugar de limpiar manualmente
+            clearCardSelection()
         }
     }
 
@@ -213,25 +213,7 @@ class GameActivity : AppCompatActivity() {
         }
     }
 
-    private fun setupPassButton() {
-        binding.btnPass.setOnClickListener {
-            Log.d("GameActivity", "Botón clickeado - isCardSelected: $isCardSelected, selectedCard: ${selectedCard?.name}")
 
-            // Asegurar que el botón esté siempre habilitado y visible
-            ensureButtonVisibility()
-
-            if (isCardSelected && selectedCard != null) {
-                // Modo "Jugar Carta" - jugar la carta en la primera fila válida disponible
-                playSelectedCardOnFirstValidRow()
-            } else {
-                // Modo "Pasar Ronda" - comportamiento original
-                handlePassTurn()
-            }
-        }
-
-        // Asegurar que el botón esté siempre visible y habilitado
-        ensureButtonVisibility()
-    }
 
     private fun handlePassTurn() {
         showRoundInfoBanner("Ronda cedida", R.drawable.roundpassedasset) {
@@ -284,6 +266,9 @@ class GameActivity : AppCompatActivity() {
                 // Click en otra carta - deseleccionar la anterior
                 clearCardSelection()
             }
+
+            // Habilitar el botón de jugar carta
+            binding.btnPlayCard.isEnabled = true
         }
 
         // Seleccionar nueva carta
@@ -327,6 +312,9 @@ class GameActivity : AppCompatActivity() {
         resetRowHighlights()
         hideFullSizeCard()
         updatePassButton()
+
+        // Deshabilitar el botón de jugar carta
+        binding.btnPlayCard.isEnabled = false
     }
 
     private fun playSelectedCardOnFirstValidRow() {
@@ -458,9 +446,9 @@ class GameActivity : AppCompatActivity() {
             return
         }
 
-        // Filtrar cartas válidas usando el método hasZeroPower()
+        // Filtrar cartas válidas (excluir cartas con power == 0)
         val validCards = allCards.filter { card ->
-            card != null && !card.hasZeroPower()
+            card != null && (card.power == null || card.power!! > 0)
         }
 
         if (validCards.isEmpty()) {
@@ -834,6 +822,16 @@ class GameActivity : AppCompatActivity() {
                 playSelectedCard("siege")
             }
         }
+    }
+
+
+    // Modificación del método existente para pasar turno (sin lógica condicional)
+    private fun setupPassButton() {
+        binding.btnPass.setOnClickListener {
+            handlePassTurn()
+        }
+        // Siempre visible y habilitado
+        ensureButtonVisibility()
     }
 
 
